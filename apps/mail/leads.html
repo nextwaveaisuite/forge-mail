@@ -236,6 +236,7 @@
     .progress-fill{height:100%;background:var(--accent);border-radius:100px;transition:width 0.4s;width:0%}
     .import-log{font-size:12px;line-height:1.9;max-height:100px;overflow-y:auto;color:var(--muted)}
     .log-ok{color:var(--accent)}
+    .log-warn{color:var(--warn)}
     .log-err{color:var(--danger)}
 
     /* Modal footer */
@@ -423,6 +424,11 @@
       <span class="pool-count" id="cnt-own">—</span>
     </button>
 
+    <button type="button" class="pool-btn" id="sb-dupes" onclick="showDuplicates(this)">
+      <span class="pool-icon">⚠️</span>
+      <span class="pool-label">Duplicates</span>
+      <span class="pool-count" id="cnt-dupes" style="background:rgba(255,165,2,0.1);color:var(--warn)">—</span>
+    </button>
     <div class="sb-section-label">Batches <span id="batch-total" style="color:var(--accent)"></span></div>
     <div id="batch-list">
       <div style="font-size:12px;color:var(--muted);padding:6px 4px">No batches yet</div>
@@ -493,6 +499,35 @@
       <span class="page-info" id="page-info"></span>
       <div class="page-btns" id="page-btns"></div>
     </div>
+    <!-- DUPLICATES PANEL -->
+    <div id="dupes-panel" style="display:none;flex:1;overflow:auto">
+      <div style="padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+        <div>
+          <div style="font-family:var(--font-d);font-size:17px;font-weight:700">⚠️ Duplicate Leads</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">These emails already exist in your leads database</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button type="button" class="btn-export" onclick="deleteAllDuplicates()" style="color:var(--danger);border-color:rgba(255,71,87,0.3)">🗑 Delete All Duplicates</button>
+          <button type="button" class="btn-export" onclick="exportDuplicates()">Export CSV</button>
+        </div>
+      </div>
+      <div style="padding:12px 20px;background:rgba(255,165,2,0.04);border-bottom:1px solid var(--border);display:flex;gap:24px;flex-wrap:wrap">
+        <span style="font-size:12px;color:var(--muted)">Total: <b style="color:var(--warn)" id="dupe-total">—</b></span>
+        <span style="font-size:12px;color:var(--muted)">Pending review: <b style="color:var(--warn)" id="dupe-pending">—</b></span>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead><tr>
+            <th>Email</th><th>Name</th><th>Location</th><th>Source File</th><th>Detected</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="dupes-body"><tr><td colspan="6"><div class="empty-state"><div class="empty-icon">✅</div><div class="empty-title">No duplicates</div><div class="empty-sub">All imports were unique.</div></div></td></tr></tbody>
+        </table>
+      </div>
+      <div class="pagination" id="dupes-pagination" style="display:none">
+        <span class="page-info" id="dupes-page-info"></span>
+        <div class="page-btns" id="dupes-page-btns"></div>
+      </div>
+    </div>
 
   </div>
 </div>
@@ -505,8 +540,8 @@
 
 // ── Config ──────────────────────────────────────────────────────────
 // ── REPLACE THESE with your actual Supabase values ──────────────────
-const SB_URL  = "https://cvwukmghdmmbchgchtsd.supabase.co";
-const SB_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2d3VrbWdoZG1tYmNoZ2NodHNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0Mzg4NjUsImV4cCI6MjA5MzAxNDg2NX0.4LtyvVkVVbWszu2wsItdBSrTvETbv1jPJsShIiyqnE8";
+const SB_URL  = "YOUR_SUPABASE_URL";
+const SB_ANON = "YOUR_SUPABASE_ANON_KEY";
 
 let sb, currentUser;
 try {
@@ -570,7 +605,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 async function loadAll() {
-  await Promise.all([loadStats(), loadBatches(), loadLeads()]);
+  await Promise.all([loadStats(), loadBatches(), loadLeads(), loadDuplicateStats()]);
 }
 
 // ═══ SIDEBAR POOL BUTTONS ════════════════════════════════════════════
@@ -579,6 +614,9 @@ function setPool(pool, btnEl) {
   activePool  = pool;
   activeBatch = null;
   currentPage = 1;
+
+  // Hide duplicates panel if showing
+  hideDuplicatesPanel();
 
   // Switch active class on sidebar pool buttons
   document.querySelectorAll(".pool-btn").forEach(b => b.classList.remove("active"));
@@ -728,16 +766,31 @@ async function startImport() {
 
     progFill.style.width = "100%";
     progTitle.textContent = "Import complete";
-    addLog(`✓ ${fmt(res.inserted)} leads imported${res.skipped ? `, ${res.skipped} skipped` : ""}`, "ok");
+
+    // Build summary log
+    if (res.inserted)   addLog(`✅ ${fmt(res.inserted)} new leads imported`, "ok");
+    if (res.duplicates) addLog(`⚠️ ${fmt(res.duplicates)} duplicates detected → moved to Duplicates tray`, "warn");
+    if (res.skipped)    addLog(`❌ ${fmt(res.skipped)} rows skipped (invalid email)`, "err");
 
     if (res.skippedDetails?.length) {
-      res.skippedDetails.slice(0, 5).forEach(s => {
-        addLog(`⚠ Row ${s.row}: ${s.reason} (${s.value})`, "err");
+      res.skippedDetails.slice(0, 3).forEach(s => {
+        addLog(`  Row ${s.row}: ${s.reason} (${s.value})`, "err");
       });
     }
 
-    toast(`✓ ${fmt(res.inserted)} leads imported`);
+    if (res.duplicates) {
+      addLog(`👉 Go to Duplicates tray to review and delete them`, "warn");
+    }
+
+    const toastMsg = [
+      res.inserted  ? `✅ ${fmt(res.inserted)} imported` : "",
+      res.duplicates? `⚠️ ${fmt(res.duplicates)} dupes`  : "",
+      res.skipped   ? `❌ ${fmt(res.skipped)} skipped`   : "",
+    ].filter(Boolean).join(" · ");
+
+    toast(toastMsg || "Import complete");
     await loadAll();
+    await loadDuplicateStats();
 
   } catch(err) {
     addLog("Error: " + err.message, "err");
@@ -748,9 +801,157 @@ async function startImport() {
   }
 }
 
+
+// ═══ DUPLICATE MANAGEMENT ═════════════════════════════════════════════
+
+let dupePage = 1;
+const DUPE_PAGE_SIZE = 50;
+
+async function showDuplicates(el) {
+  // Switch sidebar active state
+  document.querySelectorAll(".pool-btn").forEach(b => b.classList.remove("active"));
+  el.classList.add("active");
+
+  // Hide leads table, show dupes panel
+  document.getElementById("pagination").style.display       = "none";
+  document.querySelector(".table-container").style.display  = "none";
+  document.querySelector(".toolbar").style.display          = "none";
+  document.getElementById("dupes-panel").style.display      = "flex";
+  document.getElementById("dupes-panel").style.flexDirection = "column";
+
+  // Update header
+  document.getElementById("s-total").textContent = "—";
+  dupePage = 1;
+  await loadDuplicates();
+}
+
+function hideDuplicatesPanel() {
+  document.getElementById("dupes-panel").style.display     = "none";
+  document.querySelector(".table-container").style.display = "";
+  document.querySelector(".toolbar").style.display         = "";
+}
+
+async function loadDuplicates() {
+  const res = await callFn("manageLead", {
+    action: "getDuplicates",
+    userId: currentUser.id,
+    page: dupePage,
+    pageSize: DUPE_PAGE_SIZE,
+  });
+
+  if (res.error) { toast("Error: " + res.error, true); return; }
+
+  renderDuplicatesTable(res.duplicates || []);
+  renderDupesPagination(res.total || 0, res.totalPages || 1);
+  setText("dupe-total", fmt(res.total || 0));
+}
+
+async function loadDuplicateStats() {
+  const res = await callFn("manageLead", { action: "getDuplicateStats", userId: currentUser.id });
+  if (res.error || !res.total) return;
+  setText("cnt-dupes", fmt(res.total));
+  if (res.pending > 0) {
+    document.getElementById("cnt-dupes").style.background = "rgba(255,165,2,0.15)";
+    document.getElementById("cnt-dupes").style.color = "var(--warn)";
+  }
+}
+
+function renderDuplicatesTable(dupes) {
+  const tbody = document.getElementById("dupes-body");
+
+  if (!dupes.length) {
+    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state">
+      <div class="empty-icon">✅</div>
+      <div class="empty-title">No duplicates</div>
+      <div class="empty-sub">All your imports were unique leads.</div>
+    </div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = dupes.map(d => {
+    const name = [d.first_name, d.last_name].filter(Boolean).join(" ") || "—";
+    const loc  = [d.state, d.country].filter(Boolean).join(", ") || "—";
+    const date = new Date(d.detected_at).toLocaleDateString();
+    return `<tr>
+      <td class="td-email">${d.email}</td>
+      <td>${name}</td>
+      <td class="td-loc">${loc}</td>
+      <td class="td-loc">${d.source_file || "—"}</td>
+      <td class="td-loc">${date}</td>
+      <td><div class="row-actions">
+        <button type="button" class="row-btn" onclick="keepDuplicate('${d.id}')">Keep</button>
+        <button type="button" class="row-btn del" onclick="deleteDuplicate('${d.id}')">Delete</button>
+      </div></td>
+    </tr>`;
+  }).join("");
+}
+
+function renderDupesPagination(total, totalPages) {
+  const pg = document.getElementById("dupes-pagination");
+  if (totalPages <= 1 || !total) { pg.style.display = "none"; return; }
+  pg.style.display = "flex";
+
+  const from = ((dupePage - 1) * DUPE_PAGE_SIZE) + 1;
+  const to   = Math.min(dupePage * DUPE_PAGE_SIZE, total);
+  setText("dupes-page-info", `${fmt(from)}–${fmt(to)} of ${fmt(total)}`);
+
+  const btnEl = document.getElementById("dupes-page-btns");
+  btnEl.innerHTML = `
+    <button class="page-btn" onclick="goDupePage(${dupePage-1})" ${dupePage<=1?"disabled":""}>←</button>
+    <button class="page-btn cur">${dupePage}</button>
+    <button class="page-btn" onclick="goDupePage(${dupePage+1})" ${dupePage>=totalPages?"disabled":""}>→</button>
+  `;
+}
+
+function goDupePage(p) { dupePage = p; loadDuplicates(); }
+
+async function deleteDuplicate(id) {
+  const res = await callFn("manageLead", { action: "deleteDuplicate", userId: currentUser.id, dupId: id });
+  if (res.error) { toast(res.error, true); return; }
+  toast("Duplicate deleted");
+  await loadDuplicates();
+  await loadDuplicateStats();
+}
+
+async function keepDuplicate(id) {
+  const res = await callFn("manageLead", { action: "keepDuplicate", userId: currentUser.id, dupId: id });
+  if (res.error) { toast(res.error, true); return; }
+  toast("Lead kept and added to Own Leads");
+  await loadDuplicates();
+  await loadDuplicateStats();
+  await loadStats();
+}
+
+async function deleteAllDuplicates() {
+  const count = document.getElementById("dupe-total").textContent;
+  if (!confirm(`Permanently delete all ${count} duplicates? This cannot be undone.`)) return;
+  const res = await callFn("manageLead", { action: "deleteAllDuplicates", userId: currentUser.id });
+  if (res.error) { toast(res.error, true); return; }
+  toast(`✓ ${fmt(res.deleted)} duplicates deleted`);
+  setText("cnt-dupes", "0");
+  await loadDuplicates();
+  await loadDuplicateStats();
+}
+
+async function exportDuplicates() {
+  const res = await callFn("manageLead", { action: "getDuplicates", userId: currentUser.id, page: 1, pageSize: 10000 });
+  if (!res.duplicates?.length) { toast("No duplicates to export", true); return; }
+  const header = "email,first_name,last_name,phone,postcode,state,country,source_file,detected_at";
+  const rows = res.duplicates.map(d =>
+    [d.email,d.first_name||"",d.last_name||"",d.phone||"",d.postcode||"",d.state||"",d.country||"",d.source_file||"",d.detected_at]
+    .map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",")
+  );
+  const blob = new Blob([[header,...rows].join("\n")], {type:"text/csv"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `forge-duplicates-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  toast("Duplicates exported!");
+}
+
 function addLog(text, type) {
   const el = document.getElementById("import-log");
-  const cls = type === "ok" ? "log-ok" : type === "err" ? "log-err" : "";
+  const cls = type === "ok" ? "log-ok" : type === "err" ? "log-err" : type === "warn" ? "log-warn" : "";
   el.innerHTML += `<div class="${cls}">${text}</div>`;
   el.scrollTop = el.scrollHeight;
 }
