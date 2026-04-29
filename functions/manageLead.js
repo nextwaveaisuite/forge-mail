@@ -178,6 +178,53 @@ exports.handler = async (event) => {
         };
       }
 
+      // ── Get duplicates list ────────────────────────────────────────────
+      case "getDuplicates": {
+        const { page: pg = 1, pageSize: ps = 50 } = body;
+        const from = (pg - 1) * ps;
+        const { data, count, error } = await supabase
+          .from("lead_duplicates")
+          .select("*", { count: "exact" })
+          .eq("user_id", userId)
+          .order("detected_at", { ascending: false })
+          .range(from, from + ps - 1);
+        if (error) throw error;
+        return ok({ duplicates: data || [], total: count || 0, page: pg, pageSize: ps });
+      }
+
+      // ── Get duplicate stats ──────────────────────────────────────────────
+      case "getDuplicateStats": {
+        const { data: stats, error } = await supabase.rpc("get_duplicate_stats", { p_user_id: userId });
+        if (error) throw error;
+        return ok(stats);
+      }
+
+      // ── Delete single duplicate ──────────────────────────────────────────
+      case "deleteDuplicate": {
+        const { dupId } = body;
+        if (!dupId) throw new Error("dupId required");
+        const { error } = await supabase.from("lead_duplicates").delete().eq("id", dupId).eq("user_id", userId);
+        if (error) throw error;
+        return ok({ deleted: true });
+      }
+
+      // ── Delete ALL duplicates ────────────────────────────────────────────
+      case "deleteAllDuplicates": {
+        const { data: count, error } = await supabase.rpc("delete_all_duplicates", { p_user_id: userId });
+        if (error) throw error;
+        return ok({ deleted: count });
+      }
+
+      // ── Import duplicate as real lead ────────────────────────────────────
+      case "keepDuplicate": {
+        const { dupId } = body;
+        const { data: dup, error: fetchErr } = await supabase.from("lead_duplicates").select("*").eq("id", dupId).single();
+        if (fetchErr) throw fetchErr;
+        await supabase.from("leads").insert({ user_id: userId, pool: "own", email: dup.email, first_name: dup.first_name, last_name: dup.last_name, phone: dup.phone, postcode: dup.postcode, state: dup.state, country: dup.country, temperature: "cold", status: "active" });
+        await supabase.from("lead_duplicates").update({ reviewed: true, action: "kept" }).eq("id", dupId);
+        return ok({ kept: true });
+      }
+
       default:
         return { statusCode: 400, headers: HEADERS, body: JSON.stringify({ error: "Unknown action" }) };
     }
