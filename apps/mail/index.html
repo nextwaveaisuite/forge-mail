@@ -27,6 +27,8 @@
     .badge-pill{background:rgba(0,245,160,0.08);border:1px solid rgba(0,245,160,0.2);color:var(--accent);font-size:11px;padding:3px 10px;border-radius:100px;letter-spacing:0.08em}
     .btn-xs{padding:5px 12px;border-radius:var(--rs);font-family:var(--font-d);font-weight:700;font-size:11px;cursor:pointer;border:1px solid var(--border);background:none;color:var(--muted);transition:all 0.15s}
     .btn-xs:hover{color:var(--text);border-color:rgba(255,255,255,0.2)}
+    .btn-logout{padding:5px 12px;border-radius:var(--rs);font-family:var(--font-d);font-weight:700;font-size:11px;cursor:pointer;border:1px solid rgba(255,71,87,0.3);background:none;color:var(--danger);transition:all 0.15s}
+    .btn-logout:hover{background:rgba(255,71,87,0.08)}
 
     /* ── LAYOUT ── */
     .app{display:grid;grid-template-columns:360px 1fr;min-height:calc(100vh - 56px)}
@@ -196,7 +198,9 @@
   <a href="#" class="logo">Forge<span>.</span><span class="logo-tag">Mail</span></a>
   <div class="nav-right">
     <span class="badge-pill" id="nav-offer-niche">MLGS · 15,600 leads</span>
+    <a href="leads.html" class="btn-xs">Leads</a>
     <button class="btn-xs" onclick="resetAll()">New Offer</button>
+    <button class="btn-logout" onclick="logout()">Logout</button>
   </div>
 </nav>
 
@@ -362,6 +366,22 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // FORGE MAIL — App Logic
 // ─────────────────────────────────────────────────────────────────────────────
+
+// Supabase for logout
+const _SB_URL  = "YOUR_SUPABASE_URL";
+const _SB_ANON = "YOUR_SUPABASE_ANON_KEY";
+let _sb;
+try {
+  const { createClient } = supabase;
+  _sb = createClient(_SB_URL, _SB_ANON);
+} catch(e) {}
+
+async function logout() {
+  if (_sb) await _sb.auth.signOut();
+  localStorage.removeItem("forge_user_id");
+  localStorage.removeItem("forge_user_email");
+  window.location.href = "login.html";
+}
 
 const STORAGE_KEY = "forge_mail_state";
 
@@ -809,5 +829,6 @@ function switchTabById(id) {
   });
 }
 </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </body>
 </html>
