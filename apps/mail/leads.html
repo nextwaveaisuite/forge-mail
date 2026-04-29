@@ -69,6 +69,9 @@
     .batch-item:hover{background:var(--surface2);border-color:var(--border)}
     .batch-item.active{background:rgba(0,245,160,0.05);border-color:rgba(0,245,160,0.2)}
     .batch-name{font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .batch-header{display:flex;align-items:center;justify-content:space-between;gap:6px}
+    .batch-del-btn{background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;padding:2px 4px;border-radius:3px;line-height:1;flex-shrink:0;transition:color 0.15s}
+    .batch-del-btn:hover{color:var(--danger)}
     .batch-meta{font-size:10px;color:var(--muted);margin-top:2px}
     .batch-tags{display:flex;flex-wrap:wrap;gap:3px;margin-top:4px}
     .tag-chip{font-size:10px;padding:1px 7px;border-radius:100px;background:rgba(0,245,160,0.06);color:var(--accent);border:1px solid rgba(0,245,160,0.15);white-space:nowrap}
@@ -540,8 +543,8 @@
 
 // ── Config ──────────────────────────────────────────────────────────
 // ── REPLACE THESE with your actual Supabase values ──────────────────
-const SB_URL  = "https://cvwukmghdmmbchgchtsd.supabase.co";
-const SB_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2d3VrbWdoZG1tYmNoZ2NodHNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0Mzg4NjUsImV4cCI6MjA5MzAxNDg2NX0.4LtyvVkVVbWszu2wsItdBSrTvETbv1jPJsShIiyqnE8";
+const SB_URL  = "YOUR_SUPABASE_URL";
+const SB_ANON = "YOUR_SUPABASE_ANON_KEY";
 
 let sb, currentUser;
 try {
@@ -1018,13 +1021,46 @@ async function loadBatches() {
 
   el.innerHTML = batches.map((b, i) => `
     <div class="batch-item ${activeBatch === b.id ? 'active' : ''}"
-         id="batch-${i}"
-         onclick="setBatch('${b.id}', ${JSON.stringify(b.name)}, '${b.pool}', this)">
-      <div class="batch-name">${b.name}</div>
-      <div class="batch-meta">${fmt(b.lead_count)} leads · ${b.pool.toUpperCase()} · ${timeAgo(b.created_at)}</div>
+         id="batch-${i}">
+      <div class="batch-header">
+        <div class="batch-name" onclick="setBatch('${b.id}', ${JSON.stringify(b.name)}, '${b.pool}', document.getElementById('batch-${i}'))"
+             style="cursor:pointer;flex:1">${b.name}</div>
+        <button type="button" class="batch-del-btn"
+                onclick="deleteBatch('${b.id}', '${b.name.replace(/'/g,"\\'")}', ${b.lead_count})"
+                title="Delete this batch">🗑</button>
+      </div>
+      <div class="batch-meta" onclick="setBatch('${b.id}', ${JSON.stringify(b.name)}, '${b.pool}', document.getElementById('batch-${i}'))"
+           style="cursor:pointer">${fmt(b.lead_count)} leads · ${b.pool.toUpperCase()} · ${timeAgo(b.created_at)}</div>
       ${b.tags?.length ? `<div class="batch-tags">${b.tags.map(t=>`<span class="tag-chip">${t}</span>`).join("")}</div>` : ""}
     </div>
   `).join("");
+}
+
+async function deleteBatch(batchId, batchName, leadCount) {
+  const msg = leadCount > 0
+    ? `Delete "${batchName}" and all ${fmt(leadCount)} leads in it? This cannot be undone.`
+    : `Delete batch "${batchName}"? This cannot be undone.`;
+
+  if (!confirm(msg)) return;
+
+  const res = await callFn("manageLead", {
+    action:  "deleteBatch",
+    userId:  currentUser.id,
+    batchId,
+  });
+
+  if (res.error) { toast("Error: " + res.error, true); return; }
+
+  // If we were viewing this batch — reset to all leads
+  if (activeBatch === batchId) {
+    activeBatch = null;
+    activePool  = null;
+    document.querySelectorAll(".pool-btn").forEach(b => b.classList.remove("active"));
+    document.getElementById("sb-all").classList.add("active");
+  }
+
+  toast(`✓ Batch "${batchName}" deleted`);
+  await Promise.all([loadStats(), loadBatches(), loadLeads(), loadDuplicateStats()]);
 }
 
 async function loadLeads() {
