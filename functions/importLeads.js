@@ -193,16 +193,29 @@ exports.handler = async (event) => {
 
         if (insertErr) {
           console.error("[importLeads] Insert error:", insertErr.message);
+          // Don't count failed inserts
         } else {
-          inserted += (insertedData || chunk).length;
+          // Count only what Supabase actually confirmed inserting
+          inserted += insertedData ? insertedData.length : chunk.length;
         }
       }
 
-      // Update batch lead count
+      // Verify exact count directly from DB — most accurate source of truth
+      const { count: verifiedCount } = await supabase
+        .from("leads")
+        .select("*", { count: "exact", head: true })
+        .eq("batch_id", batchId)
+        .eq("user_id", userId);
+
+      const finalCount = verifiedCount || inserted;
+
+      // Update batch with verified count
       await supabase
         .from("lead_batches")
-        .update({ lead_count: inserted })
+        .update({ lead_count: finalCount })
         .eq("id", batchId);
+
+      inserted = finalCount; // use verified number in response
     }
 
     // ── Store duplicates in duplicates table ──────────────────────────
