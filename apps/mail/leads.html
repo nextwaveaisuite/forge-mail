@@ -389,7 +389,9 @@
   <div class="nav-right">
     <span class="nav-stat">MLGS <b id="nav-mlgs">—</b></span>
     <span class="nav-stat">Own <b id="nav-own">—</b></span>
+    <span class="nav-stat" id="nav-user-email" style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
     <button type="button" class="btn-import" onclick="openModal()">+ Import Leads</button>
+    <button type="button" style="padding:6px 12px;border-radius:3px;font-size:12px;cursor:pointer;border:1px solid rgba(255,255,255,0.1);background:none;color:var(--muted);font-family:var(--font-m);transition:all 0.15s" onclick="logout()">Logout</button>
   </div>
 </nav>
 
@@ -500,8 +502,9 @@
 // ═══════════════════════════════════════════════════════════════════
 
 // ── Config ──────────────────────────────────────────────────────────
-const SB_URL  = window._ENV_SUPABASE_URL  || "YOUR_SUPABASE_URL";
-const SB_ANON = window._ENV_SUPABASE_ANON || "YOUR_SUPABASE_ANON_KEY";
+// ── REPLACE THESE with your actual Supabase values ──────────────────
+const SB_URL  = "YOUR_SUPABASE_URL";
+const SB_ANON = "YOUR_SUPABASE_ANON_KEY";
 
 let sb, currentUser;
 try {
@@ -527,11 +530,23 @@ let csvFileName = null;
 
 // ── Boot ─────────────────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", async () => {
-  // Auth check
-  if (sb) {
-    const { data: { session } } = await sb.auth.getSession();
-    if (!session) { window.location.href = "login.html"; return; }
+  // Auth check — redirect to login if not logged in
+  if (!sb) {
+    console.error("Supabase not configured");
+    return;
+  }
+  try {
+    const { data: { session }, error } = await sb.auth.getSession();
+    if (error || !session) { window.location.href = "login.html"; return; }
     currentUser = session.user;
+    localStorage.setItem("forge_user_id", currentUser.id);
+    localStorage.setItem("forge_user_email", currentUser.email);
+    // Show user email in nav
+    const emailEl = document.getElementById("nav-user-email");
+    if (emailEl) emailEl.textContent = currentUser.email;
+  } catch(e) {
+    window.location.href = "login.html";
+    return;
   }
 
   // Keyboard shortcuts
@@ -962,6 +977,15 @@ async function exportLeads() {
 }
 
 // ═══ UTILITIES ════════════════════════════════════════════════════════
+
+async function logout() {
+  if (sb) await sb.auth.signOut();
+  localStorage.removeItem("forge_user_id");
+  localStorage.removeItem("forge_user_email");
+  window.location.href = "login.html";
+}
+
+function showToastError(msg) { toast(msg, true); }
 
 async function callFn(name, body) {
   try {
