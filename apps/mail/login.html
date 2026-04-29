@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Forge Mail — Login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:#080810; --surface:#0e0e1a; --surface2:#111120;
+      --border:rgba(255,255,255,0.07); --border-accent:rgba(0,245,160,0.2);
+      --accent:#00f5a0; --text:#e8e8f0; --muted:#5a5a7a; --danger:#ff4757;
+      --font-d:'Syne',sans-serif; --font-m:'DM Mono',monospace;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{
+      background:var(--bg);color:var(--text);
+      font-family:var(--font-m);font-size:14px;
+      min-height:100vh;display:flex;align-items:center;
+      justify-content:center;padding:24px;
+    }
+    body::before{
+      content:'';position:fixed;inset:0;
+      background-image:
+        linear-gradient(rgba(0,245,160,0.02) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(0,245,160,0.02) 1px,transparent 1px);
+      background-size:52px 52px;
+      mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 30%,transparent 100%);
+      pointer-events:none;
+    }
+
+    .wrap{width:100%;max-width:400px;position:relative;z-index:1}
+
+    /* LOGO */
+    .logo{
+      font-family:var(--font-d);font-weight:800;font-size:24px;
+      letter-spacing:-1px;color:white;text-align:center;
+      display:block;margin-bottom:8px;text-decoration:none;
+    }
+    .logo span{color:var(--accent)}
+    .logo-sub{
+      text-align:center;font-size:11px;color:var(--muted);
+      letter-spacing:0.15em;text-transform:uppercase;
+      margin-bottom:36px;
+    }
+
+    /* CARD */
+    .card{
+      background:var(--surface);border:1px solid var(--border);
+      border-radius:8px;overflow:hidden;
+    }
+
+    /* TABS */
+    .tabs{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--border)}
+    .tab-btn{
+      padding:14px;text-align:center;font-size:13px;
+      color:var(--muted);cursor:pointer;
+      background:none;border:none;font-family:var(--font-m);
+      border-bottom:2px solid transparent;transition:all 0.15s;
+    }
+    .tab-btn:hover{color:var(--text)}
+    .tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);background:rgba(0,245,160,0.03)}
+
+    /* FORM */
+    .form-body{padding:28px}
+    .field{margin-bottom:16px}
+    .field label{
+      display:block;font-size:11px;color:var(--muted);
+      letter-spacing:0.1em;text-transform:uppercase;margin-bottom:7px;
+    }
+    .field input{
+      width:100%;background:var(--surface2);border:1px solid var(--border);
+      color:var(--text);font-family:var(--font-m);font-size:14px;
+      padding:12px 14px;border-radius:4px;outline:none;transition:border 0.15s;
+    }
+    .field input:focus{border-color:var(--border-accent);box-shadow:0 0 0 3px rgba(0,245,160,0.05)}
+    .field input::placeholder{color:var(--muted)}
+
+    /* ALERT */
+    .alert{
+      padding:10px 14px;border-radius:4px;font-size:12px;
+      line-height:1.6;margin-bottom:16px;display:none;
+    }
+    .alert.show{display:block}
+    .alert.error{background:rgba(255,71,87,0.08);color:var(--danger);border:1px solid rgba(255,71,87,0.2)}
+    .alert.success{background:rgba(0,245,160,0.08);color:var(--accent);border:1px solid rgba(0,245,160,0.2)}
+    .alert.info{background:rgba(0,180,216,0.08);color:#00b4d8;border:1px solid rgba(0,180,216,0.2)}
+
+    /* SUBMIT BUTTON */
+    .submit-btn{
+      width:100%;padding:13px;background:var(--accent);color:#000;
+      border:none;border-radius:4px;font-family:var(--font-d);
+      font-weight:700;font-size:15px;cursor:pointer;
+      transition:all 0.18s;letter-spacing:0.02em;
+      display:flex;align-items:center;justify-content:center;gap:8px;
+    }
+    .submit-btn:hover{background:#00ffb0;transform:translateY(-1px)}
+    .submit-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none}
+
+    /* SPINNER */
+    .spin{
+      width:15px;height:15px;border:2px solid rgba(0,0,0,0.2);
+      border-top-color:#000;border-radius:50%;
+      animation:spin 0.7s linear infinite;display:none;
+    }
+    .spin.show{display:block}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* FOOTER NOTE */
+    .foot-note{text-align:center;font-size:12px;color:var(--muted);margin-top:20px}
+  </style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <a href="index.html" class="logo">Forge<span>.</span>Mail</a>
+  <div class="logo-sub">Revenue OS · Lead Manager</div>
+
+  <div class="card">
+
+    <!-- TABS -->
+    <div class="tabs">
+      <button type="button" class="tab-btn active" id="tab-login" onclick="showTab('login')">Login</button>
+      <button type="button" class="tab-btn" id="tab-signup" onclick="showTab('signup')">Sign Up</button>
+    </div>
+
+    <!-- LOGIN FORM -->
+    <div class="form-body" id="form-login">
+      <div class="alert" id="login-alert"></div>
+
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="login-email" placeholder="you@email.com" autocomplete="email"/>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password"/>
+      </div>
+
+      <button type="button" class="submit-btn" id="login-btn" onclick="login()">
+        <span class="spin" id="login-spin"></span>
+        <span id="login-text">Login to Forge Mail</span>
+      </button>
+    </div>
+
+    <!-- SIGNUP FORM -->
+    <div class="form-body" id="form-signup" style="display:none">
+      <div class="alert" id="signup-alert"></div>
+
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="signup-email" placeholder="you@email.com" autocomplete="email"/>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="signup-password" placeholder="Minimum 6 characters" autocomplete="new-password"/>
+      </div>
+
+      <button type="button" class="submit-btn" id="signup-btn" onclick="signup()">
+        <span class="spin" id="signup-spin"></span>
+        <span id="signup-text">Create Forge Account</span>
+      </button>
+    </div>
+
+  </div>
+
+  <div class="foot-note">forge.nextwaveaisuite.com</div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+  // ── Config ──────────────────────────────────────────────────────────
+  // REPLACE THESE with your actual Supabase values
+  const SB_URL  = "YOUR_SUPABASE_URL";
+  const SB_ANON = "YOUR_SUPABASE_ANON_KEY";
+
+  const { createClient } = supabase;
+  const sb = createClient(SB_URL, SB_ANON);
+
+  // ── Check already logged in ──────────────────────────────────────────
+  (async () => {
+    const { data: { session } } = await sb.auth.getSession();
+    if (session) {
+      // Already logged in — go straight to leads
+      window.location.href = "leads.html";
+    }
+  })();
+
+  // ── Tab switching ────────────────────────────────────────────────────
+  function showTab(tab) {
+    document.getElementById("form-login").style.display  = tab === "login"  ? "block" : "none";
+    document.getElementById("form-signup").style.display = tab === "signup" ? "block" : "none";
+    document.getElementById("tab-login").classList.toggle("active",  tab === "login");
+    document.getElementById("tab-signup").classList.toggle("active", tab === "signup");
+    clearAlerts();
+  }
+
+  // ── Login ─────────────────────────────────────────────────────────────
+  async function login() {
+    const email    = document.getElementById("login-email").value.trim();
+    const password = document.getElementById("login-password").value;
+
+    if (!email || !password) {
+      showAlert("login", "Please enter your email and password.", "error");
+      return;
+    }
+
+    setLoading("login", true);
+
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+
+    if (error) {
+      setLoading("login", false);
+      showAlert("login", error.message, "error");
+      return;
+    }
+
+    // Save user info
+    localStorage.setItem("forge_user_id",    data.user.id);
+    localStorage.setItem("forge_user_email", data.user.email);
+
+    // Redirect to leads manager
+    window.location.href = "leads.html";
+  }
+
+  // ── Signup ─────────────────────────────────────────────────────────────
+  async function signup() {
+    const email    = document.getElementById("signup-email").value.trim();
+    const password = document.getElementById("signup-password").value;
+
+    if (!email || !password) {
+      showAlert("signup", "Please enter your email and password.", "error");
+      return;
+    }
+    if (password.length < 6) {
+      showAlert("signup", "Password must be at least 6 characters.", "error");
+      return;
+    }
+
+    setLoading("signup", true);
+
+    const { data, error } = await sb.auth.signUp({ email, password });
+
+    if (error) {
+      setLoading("signup", false);
+      showAlert("signup", error.message, "error");
+      return;
+    }
+
+    setLoading("signup", false);
+
+    if (data.user?.identities?.length === 0) {
+      showAlert("signup", "An account with this email already exists. Please login instead.", "error");
+      return;
+    }
+
+    showAlert("signup",
+      "✓ Account created! Check your email to confirm your account, then come back and login.",
+      "success"
+    );
+  }
+
+  // ── Helpers ──────────────────────────────────────────────────────────
+  function setLoading(form, loading) {
+    const btn  = document.getElementById(`${form}-btn`);
+    const spin = document.getElementById(`${form}-spin`);
+    const text = document.getElementById(`${form}-text`);
+    btn.disabled = loading;
+    spin.classList.toggle("show", loading);
+    text.textContent = loading
+      ? (form === "login" ? "Logging in..." : "Creating account...")
+      : (form === "login" ? "Login to Forge Mail" : "Create Forge Account");
+  }
+
+  function showAlert(form, message, type) {
+    const el = document.getElementById(`${form}-alert`);
+    el.textContent = message;
+    el.className = `alert ${type} show`;
+  }
+
+  function clearAlerts() {
+    ["login-alert","signup-alert"].forEach(id => {
+      const el = document.getElementById(id);
+      el.className = "alert";
+      el.textContent = "";
+    });
+  }
+
+  // ── Enter key support ────────────────────────────────────────────────
+  document.addEventListener("keydown", e => {
+    if (e.key !== "Enter") return;
+    const loginVisible = document.getElementById("form-login").style.display !== "none";
+    loginVisible ? login() : signup();
+  });
+</script>
+</body>
+</html>
