@@ -77,7 +77,7 @@
     .tag-chip{font-size:10px;padding:1px 7px;border-radius:100px;background:rgba(0,245,160,0.06);color:var(--accent);border:1px solid rgba(0,245,160,0.15);white-space:nowrap}
 
     /* ── STATS STRIP ── */
-    .stats-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border-bottom:1px solid var(--border);flex-shrink:0}
+    .stats-strip{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:var(--border);border-bottom:1px solid var(--border);flex-shrink:0}
     .stat-cell{background:var(--surface);padding:14px 20px}
     .stat-num{font-family:var(--font-d);font-size:24px;font-weight:800;color:var(--accent);line-height:1;display:block}
     .stat-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-top:3px;display:block}
@@ -261,7 +261,7 @@
     @media(max-width:900px){
       .app{grid-template-columns:1fr}
       .sidebar{border-right:none;border-bottom:1px solid var(--border);padding:12px}
-      .stats-strip{grid-template-columns:repeat(2,1fr)}
+      .stats-strip{grid-template-columns:repeat(3,1fr)}
     }
   </style>
 </head>
@@ -444,10 +444,12 @@
 
     <!-- STATS -->
     <div class="stats-strip">
-      <div class="stat-cell"><span class="stat-num" id="s-total">—</span><span class="stat-lbl">Total</span></div>
+      <div class="stat-cell"><span class="stat-num" id="s-total">—</span><span class="stat-lbl">Total Leads</span></div>
       <div class="stat-cell"><span class="stat-num" id="s-active">—</span><span class="stat-lbl">Active</span></div>
+      <div class="stat-cell"><span class="stat-num" id="s-cold" style="color:#6e8efb">—</span><span class="stat-lbl">🔵 Cold</span></div>
+      <div class="stat-cell"><span class="stat-num" id="s-warm" style="color:var(--warn)">—</span><span class="stat-lbl">🟡 Warm</span></div>
+      <div class="stat-cell"><span class="stat-num" id="s-hot" style="color:var(--danger)">—</span><span class="stat-lbl">🔴 Hot</span></div>
       <div class="stat-cell"><span class="stat-num" id="s-unsub">—</span><span class="stat-lbl">Unsubscribed</span></div>
-      <div class="stat-cell"><span class="stat-num" id="s-bounced">—</span><span class="stat-lbl">Bounced</span></div>
     </div>
 
     <!-- TOOLBAR -->
@@ -1000,10 +1002,17 @@ async function loadStats() {
   setText("cnt-all",   fmt(total));
   setText("cnt-mlgs",  fmt(mlgsTotal));
   setText("cnt-own",   fmt(ownTotal));
-  setText("s-total",   fmt(total));
-  setText("s-active",  fmt((res.mlgs.active||0) + (res.own.active||0)));
-  setText("s-unsub",   fmt((res.mlgs.unsubscribed||0) + (res.own.unsubscribed||0)));
-  setText("s-bounced", fmt((res.mlgs.bounced||0) + (res.own.bounced||0)));
+  // Precise totals from COUNT queries
+  setText("s-total",  fmt(total));
+  setText("s-active", fmt((res.mlgs.active||0) + (res.own.active||0)));
+  setText("s-unsub",  fmt((res.mlgs.unsubscribed||0) + (res.own.unsubscribed||0)));
+
+  // Temperature counts
+  if (res.temperature) {
+    setText("s-cold", fmt(res.temperature.cold || 0));
+    setText("s-warm", fmt(res.temperature.warm || 0));
+    setText("s-hot",  fmt(res.temperature.hot  || 0));
+  }
 }
 
 async function loadBatches() {
