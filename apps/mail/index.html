@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Forge Mail — AI Email Writer + Rotator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:#080810; --surface:#0e0e1a; --surface2:#111120; --surface3:#141424;
+      --border:rgba(255,255,255,0.07); --border-accent:rgba(0,245,160,0.2);
+      --accent:#00f5a0; --accent2:#00b4d8; --purple:#9b5de5;
+      --text:#e8e8f0; --muted:#5a5a7a; --danger:#ff4757; --warn:#ffa502;
+      --font-d:'Syne',sans-serif; --font-m:'DM Mono',monospace;
+      --r:6px; --rs:3px;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--text);font-family:var(--font-m);font-size:14px;line-height:1.7;min-height:100vh}
+
+    /* ── NAV ── */
+    nav{height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid var(--border);background:rgba(8,8,16,0.95);backdrop-filter:blur(20px);position:sticky;top:0;z-index:200}
+    .logo{font-family:var(--font-d);font-weight:800;font-size:18px;letter-spacing:-0.5px;color:white;text-decoration:none}
+    .logo span{color:var(--accent)}
+    .logo-tag{font-size:10px;color:var(--muted);letter-spacing:0.15em;text-transform:uppercase;margin-left:6px;font-weight:400}
+    .nav-right{display:flex;align-items:center;gap:10px}
+    .badge-pill{background:rgba(0,245,160,0.08);border:1px solid rgba(0,245,160,0.2);color:var(--accent);font-size:11px;padding:3px 10px;border-radius:100px;letter-spacing:0.08em}
+    .btn-xs{padding:5px 12px;border-radius:var(--rs);font-family:var(--font-d);font-weight:700;font-size:11px;cursor:pointer;border:1px solid var(--border);background:none;color:var(--muted);transition:all 0.15s}
+    .btn-xs:hover{color:var(--text);border-color:rgba(255,255,255,0.2)}
+
+    /* ── LAYOUT ── */
+    .app{display:grid;grid-template-columns:360px 1fr;min-height:calc(100vh - 56px)}
+    .left{border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto}
+    .right{overflow-y:auto;background:var(--surface)}
+
+    /* ── LEFT PANEL ── */
+    .left-section{padding:20px;border-bottom:1px solid var(--border)}
+    .section-label{font-size:10px;color:var(--accent);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+    .section-label::before{content:'';display:block;width:16px;height:1px;background:var(--accent)}
+
+    label{display:block;font-size:11px;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px;margin-top:12px}
+    label:first-of-type{margin-top:0}
+    input[type="url"],input[type="text"],textarea,select{
+      width:100%;background:var(--surface2);border:1px solid var(--border);
+      color:var(--text);font-family:var(--font-m);font-size:13px;
+      padding:10px 12px;border-radius:var(--rs);outline:none;transition:border 0.15s
+    }
+    input:focus,textarea:focus,select:focus{border-color:var(--border-accent);box-shadow:0 0 0 3px rgba(0,245,160,0.05)}
+    input::placeholder,textarea::placeholder{color:var(--muted)}
+    textarea{resize:vertical;min-height:56px}
+
+    .forge-btn{width:100%;padding:12px;background:var(--accent);color:#000;border:none;border-radius:var(--rs);font-family:var(--font-d);font-weight:700;font-size:14px;cursor:pointer;transition:all 0.18s;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:16px;letter-spacing:0.02em}
+    .forge-btn:hover{background:#00ffb0;transform:translateY(-1px)}
+    .forge-btn:disabled{opacity:0.45;cursor:not-allowed;transform:none}
+
+    /* ── STATS BAR ── */
+    .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border-top:1px solid var(--border)}
+    .stat-cell{background:var(--surface);padding:14px 16px;text-align:center}
+    .stat-num{font-family:var(--font-d);font-size:22px;font-weight:800;color:var(--accent);display:block;line-height:1}
+    .stat-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-top:3px}
+
+    /* ── ROTATOR ── */
+    .rotator-section{padding:20px;flex:1}
+    .today-card{background:rgba(0,245,160,0.04);border:1px solid rgba(0,245,160,0.2);border-radius:var(--r);padding:16px;margin-bottom:16px}
+    .today-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+    .today-title{font-family:var(--font-d);font-size:13px;font-weight:700;color:var(--accent)}
+    .today-day{font-size:11px;color:var(--muted)}
+    .today-subject{font-size:13px;color:var(--text);font-weight:500;margin-bottom:6px;padding:8px 10px;background:var(--surface2);border-radius:var(--rs);border:1px solid var(--border)}
+    .today-framework{font-size:10px;color:var(--purple);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px}
+    .today-actions{display:flex;gap:8px}
+    .copy-subj-btn,.copy-body-btn,.mark-sent-btn{padding:7px 12px;border-radius:var(--rs);font-size:12px;font-family:var(--font-d);font-weight:700;cursor:pointer;transition:all 0.15s;border:none}
+    .copy-subj-btn{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+    .copy-subj-btn:hover{border-color:var(--border-accent);color:var(--accent)}
+    .copy-body-btn{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+    .copy-body-btn:hover{border-color:var(--border-accent);color:var(--accent)}
+    .mark-sent-btn{background:var(--accent);color:#000;flex:1}
+    .mark-sent-btn:hover{background:#00ffb0}
+
+    .queue-label{font-size:10px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+    .queue-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--rs);margin-bottom:4px;cursor:pointer;transition:all 0.15s;border:1px solid transparent}
+    .queue-item:hover{background:var(--surface2);border-color:var(--border)}
+    .queue-item.sent{opacity:0.4}
+    .queue-item.active{background:rgba(0,245,160,0.05);border-color:var(--border-accent)}
+    .queue-num{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;font-family:var(--font-d)}
+    .queue-num.pending{background:var(--surface2);color:var(--muted);border:1px solid var(--border)}
+    .queue-num.done{background:rgba(0,245,160,0.1);color:var(--accent);border:1px solid rgba(0,245,160,0.2)}
+    .queue-num.today{background:var(--accent);color:#000}
+    .queue-text{flex:1;min-width:0}
+    .queue-subject{font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .queue-fw{font-size:10px;color:var(--muted)}
+    .queue-date{font-size:10px;color:var(--muted);flex-shrink:0}
+
+    /* ── RIGHT PANEL TABS ── */
+    .right-header{padding:20px 24px 0;border-bottom:1px solid var(--border)}
+    .tabs{display:flex;gap:2px;overflow-x:auto}
+    .tab{padding:10px 18px;font-size:12px;letter-spacing:0.05em;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.15s;white-space:nowrap;background:none;border-top:none;border-left:none;border-right:none;font-family:var(--font-m)}
+    .tab:hover{color:var(--text)}
+    .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+    .tab-content{display:none;padding:20px 24px}
+    .tab-content.active{display:block}
+
+    /* ── EMPTY STATE ── */
+    .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;text-align:center;color:var(--muted);padding:40px}
+    .empty-icon{font-size:48px;margin-bottom:20px;opacity:0.3}
+    .empty-title{font-family:var(--font-d);font-size:18px;font-weight:700;color:var(--text);margin-bottom:8px}
+    .empty-sub{font-size:13px;line-height:1.8;max-width:320px}
+
+    /* ── SUBJECT LINE CARDS ── */
+    .subj-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:16px;margin-bottom:8px;transition:border 0.15s}
+    .subj-card:hover{border-color:var(--border-accent)}
+    .subj-header{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap}
+    .subj-num{font-family:var(--font-d);font-size:11px;font-weight:700;color:var(--muted)}
+    .fw-badge{font-size:10px;padding:2px 8px;border-radius:3px;letter-spacing:0.08em;text-transform:uppercase}
+    .fw-curiosity{background:rgba(0,180,216,0.1);color:var(--accent2)}
+    .fw-fomo{background:rgba(255,165,2,0.1);color:var(--warn)}
+    .fw-pain{background:rgba(255,71,87,0.1);color:var(--danger)}
+    .fw-social{background:rgba(0,245,160,0.08);color:var(--accent)}
+    .fw-pattern{background:rgba(155,93,229,0.1);color:var(--purple)}
+    .fw-authority{background:rgba(0,245,160,0.08);color:var(--accent)}
+    .fw-scarcity{background:rgba(255,165,2,0.1);color:var(--warn)}
+    .fw-story{background:rgba(0,180,216,0.1);color:var(--accent2)}
+    .fw-challenge{background:rgba(255,71,87,0.1);color:var(--danger)}
+    .fw-reverse{background:rgba(155,93,229,0.1);color:var(--purple)}
+    .subj-text{font-size:14px;color:var(--text);font-weight:500;margin-bottom:4px}
+    .subj-preview{font-size:12px;color:var(--muted)}
+    .subj-actions{display:flex;gap:8px;margin-top:10px}
+    .copy-btn{background:none;border:1px solid var(--border);color:var(--muted);font-size:11px;padding:4px 10px;border-radius:3px;cursor:pointer;font-family:var(--font-m);transition:all 0.15s}
+    .copy-btn:hover{color:var(--accent);border-color:var(--border-accent)}
+    .use-today-btn{background:none;border:1px solid var(--border-accent);color:var(--accent);font-size:11px;padding:4px 10px;border-radius:3px;cursor:pointer;font-family:var(--font-m);transition:all 0.15s}
+    .use-today-btn:hover{background:rgba(0,245,160,0.06)}
+
+    /* ── EMAIL BODY CARDS ── */
+    .email-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:18px;margin-bottom:10px}
+    .email-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;gap:12px;flex-wrap:wrap}
+    .email-meta{}
+    .email-fw{font-family:var(--font-d);font-size:12px;font-weight:700;margin-bottom:4px}
+    .email-hook{font-size:11px;color:var(--purple);font-style:italic}
+    .email-wc{font-size:11px;color:var(--muted);flex-shrink:0;margin-top:4px}
+    .email-body-text{font-size:13px;color:var(--text);line-height:1.9;white-space:pre-wrap;background:var(--surface3);border-radius:var(--rs);padding:14px;border:1px solid var(--border);margin-bottom:10px}
+    .email-link-note{font-size:11px;color:var(--warn);margin-bottom:10px}
+
+    /* ── COMBINATIONS TABLE ── */
+    .combos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px}
+    .combo-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:12px;cursor:pointer;transition:all 0.15s}
+    .combo-card:hover{border-color:var(--border-accent)}
+    .combo-card.sent-combo{opacity:0.45;background:var(--surface)}
+    .combo-card.today-combo{border-color:var(--accent);background:rgba(0,245,160,0.04)}
+    .combo-num{font-size:10px;color:var(--muted);margin-bottom:4px}
+    .combo-subj{font-size:12px;color:var(--text);font-weight:500;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .combo-fw{font-size:10px;color:var(--muted)}
+    .combo-status{font-size:10px;margin-top:6px}
+    .status-pending{color:var(--muted)}
+    .status-sent{color:var(--accent)}
+    .status-today{color:var(--accent);font-weight:700}
+
+    /* ── OFFER CONTEXT ── */
+    .offer-box{background:rgba(0,180,216,0.05);border:1px solid rgba(0,180,216,0.15);border-radius:var(--rs);padding:14px;margin-bottom:20px}
+    .offer-label{font-size:10px;color:var(--accent2);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px}
+    .offer-text{font-size:13px;color:var(--text);line-height:1.7}
+    .offer-url{font-size:11px;color:var(--muted);margin-top:4px;word-break:break-all}
+
+    /* ── LOADING ── */
+    .overlay{position:fixed;inset:0;background:rgba(8,8,16,0.88);display:none;align-items:center;justify-content:center;z-index:500;flex-direction:column;gap:16px}
+    .overlay.on{display:flex}
+    .ring{width:48px;height:48px;border:3px solid rgba(0,245,160,0.15);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite}
+    .step-text{color:var(--accent);font-size:13px;letter-spacing:0.08em;text-align:center;max-width:280px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* ── TOAST ── */
+    .toast{position:fixed;bottom:24px;right:24px;padding:10px 20px;border-radius:4px;font-family:var(--font-d);font-weight:700;font-size:13px;z-index:9999;transform:translateY(60px);opacity:0;transition:all 0.25s;pointer-events:none}
+    .toast.show{transform:translateY(0);opacity:1}
+
+    /* ── PROGRESS BAR ── */
+    .progress-wrap{background:var(--surface2);border-radius:100px;height:4px;overflow:hidden;margin-bottom:4px}
+    .progress-bar{height:100%;background:var(--accent);border-radius:100px;transition:width 0.5s ease}
+
+    @media(max-width:900px){
+      .app{grid-template-columns:1fr}
+      .left{border-right:none;border-bottom:1px solid var(--border)}
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOADING OVERLAY -->
+<div class="overlay" id="overlay">
+  <div class="ring"></div>
+  <div class="step-text" id="step-text">Forge Mail initialising...</div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="logo">Forge<span>.</span><span class="logo-tag">Mail</span></a>
+  <div class="nav-right">
+    <span class="badge-pill" id="nav-offer-niche">MLGS · 15,600 leads</span>
+    <button class="btn-xs" onclick="resetAll()">New Offer</button>
+  </div>
+</nav>
+
+<div class="app">
+
+  <!-- ── LEFT PANEL ── -->
+  <aside class="left">
+
+    <!-- INPUT -->
+    <div class="left-section">
+      <div class="section-label">Generate</div>
+
+      <label>Affiliate URL *</label>
+      <input type="url" id="aff-url" placeholder="https://hop.clickbank.net/... or any offer URL"/>
+
+      <label>Niche (optional)</label>
+      <input type="text" id="niche" placeholder="e.g. weight loss, make money online, crypto..."/>
+
+      <label>Notes for AI (optional)</label>
+      <textarea id="custom-note" placeholder="e.g. target audience is beginners, emphasise the free trial..."></textarea>
+
+      <button class="forge-btn" id="forge-btn" onclick="generate()">
+        ⚡ Generate 10 Subjects + 5 Emails
+      </button>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-row" id="stats-row" style="display:none">
+      <div class="stat-cell">
+        <span class="stat-num" id="stat-sent">0</span>
+        <span class="stat-lbl">Sent</span>
+      </div>
+      <div class="stat-cell">
+        <span class="stat-num" id="stat-remaining">0</span>
+        <span class="stat-lbl">Remaining</span>
+      </div>
+      <div class="stat-cell">
+        <span class="stat-num" id="stat-total">0</span>
+        <span class="stat-lbl">Total</span>
+      </div>
+    </div>
+
+    <!-- ROTATOR -->
+    <div class="rotator-section" id="rotator-section" style="display:none">
+      <div class="section-label">Rotation Queue</div>
+
+      <!-- TODAY'S SEND -->
+      <div class="today-card" id="today-card">
+        <div class="today-header">
+          <span class="today-title">📬 Today's Send</span>
+          <span class="today-day" id="today-date"></span>
+        </div>
+        <div class="today-subject" id="today-subject">—</div>
+        <div class="today-framework" id="today-framework">—</div>
+        <div style="margin-bottom:10px;">
+          <div class="progress-wrap">
+            <div class="progress-bar" id="progress-bar" style="width:0%"></div>
+          </div>
+          <div style="font-size:11px;color:var(--muted)" id="progress-label">0 of 50 sent</div>
+        </div>
+        <div class="today-actions">
+          <button class="copy-subj-btn" onclick="copyTodaySubject()">Copy Subject</button>
+          <button class="copy-body-btn" onclick="copyTodayBody()">Copy Email Body</button>
+          <button class="mark-sent-btn" onclick="markSent()">✓ Mark Sent</button>
+        </div>
+      </div>
+
+      <!-- QUEUE LIST -->
+      <div class="queue-label">
+        <span>All combinations</span>
+        <span id="queue-progress-text" style="color:var(--accent)"></span>
+      </div>
+      <div id="queue-list"></div>
+    </div>
+
+  </aside>
+
+  <!-- ── RIGHT PANEL ── -->
+  <main class="right">
+
+    <!-- EMPTY STATE -->
+    <div class="empty-state" id="empty-state">
+      <div class="empty-icon">✉️</div>
+      <div class="empty-title">Forge Mail</div>
+      <div class="empty-sub">Paste any affiliate URL on the left and hit Generate. You'll get 10 subject lines, 5 email bodies, and a 50-day rotation queue — ready for your MLGS list.</div>
+    </div>
+
+    <!-- CONTENT -->
+    <div id="main-content" style="display:none">
+      <div class="right-header">
+        <div class="tabs">
+          <button class="tab active" onclick="switchTab('today',this)">Today's Email</button>
+          <button class="tab" onclick="switchTab('subjects',this)">Subject Lines (10)</button>
+          <button class="tab" onclick="switchTab('bodies',this)">Email Bodies (5)</button>
+          <button class="tab" onclick="switchTab('combos',this)">All Combos (50)</button>
+        </div>
+      </div>
+
+      <!-- TODAY TAB -->
+      <div class="tab-content active" id="tab-today">
+        <div class="offer-box" id="offer-box">
+          <div class="offer-label">Offer Context</div>
+          <div class="offer-text" id="offer-context-text">—</div>
+          <div class="offer-url" id="offer-url-text">—</div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:16px">
+            <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px">Today's Subject Line</div>
+            <div style="font-size:14px;color:var(--text);font-weight:500;margin-bottom:6px" id="today-subj-display">—</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:10px" id="today-preview-display">—</div>
+            <button class="copy-btn" onclick="copyTodaySubject()">Copy Subject</button>
+          </div>
+          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:16px">
+            <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px">Psychology Framework</div>
+            <div style="font-size:13px;color:var(--purple);font-weight:500;margin-bottom:4px" id="today-fw-display">—</div>
+            <div style="font-size:11px;color:var(--muted)" id="today-hook-display">—</div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em">Email Body</div>
+          <div style="font-size:11px;color:var(--muted)" id="today-wc-display"></div>
+        </div>
+        <div class="email-body-text" id="today-body-display">—</div>
+        <div class="email-link-note">⚠️ Replace [YOUR LINK] with your actual affiliate link before sending</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="copy-btn" style="padding:8px 16px;font-size:12px" onclick="copyTodayBody()">Copy Email Body</button>
+          <button class="copy-btn" style="padding:8px 16px;font-size:12px" onclick="copyTodayFull()">Copy Subject + Body Together</button>
+          <button class="mark-sent-btn" style="padding:8px 16px;font-size:12px;border-radius:var(--rs);font-family:var(--font-d);font-weight:700;cursor:pointer;border:none;background:var(--accent);color:#000;transition:all 0.15s" onclick="markSent()">✓ Mark Sent → Next Day</button>
+        </div>
+      </div>
+
+      <!-- SUBJECTS TAB -->
+      <div class="tab-content" id="tab-subjects">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:16px">10 subject lines — one per psychological framework. Click "Use Today" to set any as your current send.</div>
+        <div id="subjects-list"></div>
+        <button class="copy-btn" style="padding:8px 16px;font-size:12px;margin-top:8px" onclick="copyAllSubjects()">Copy All 10 Subject Lines</button>
+      </div>
+
+      <!-- BODIES TAB -->
+      <div class="tab-content" id="tab-bodies">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:16px">5 email bodies — each uses a different psychological framework. Rotate to find what converts with your list.</div>
+        <div id="bodies-list"></div>
+        <button class="copy-btn" style="padding:8px 16px;font-size:12px;margin-top:8px" onclick="copyAllBodies()">Copy All 5 Email Bodies</button>
+      </div>
+
+      <!-- COMBOS TAB -->
+      <div class="tab-content" id="tab-combos">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:16px">50 unique combinations — 10 subjects × 5 bodies. The rotator cycles through these in order, never repeating until all 50 are sent.</div>
+        <div class="combos-grid" id="combos-grid"></div>
+        <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap">
+          <button class="copy-btn" style="padding:8px 16px;font-size:12px" onclick="resetRotator()">Reset Rotator (start over)</button>
+          <button class="copy-btn" style="padding:8px 16px;font-size:12px" onclick="exportLog()">Export Sent Log</button>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script>
+// ─────────────────────────────────────────────────────────────────────────────
+// FORGE MAIL — App Logic
+// ─────────────────────────────────────────────────────────────────────────────
+
+const STORAGE_KEY = "forge_mail_state";
+
+let state = {
+  affiliateUrl: "",
+  niche: "",
+  offerContext: "",
+  subjectLines: [],
+  emailBodies: [],
+  combinations: [],
+  currentIndex: 0,         // which combination is "today"
+  sentCount: 0,
+  generatedAt: null,
+};
+
+const STEPS = [
+  "Forge Mail initialising...",
+  "Reading offer URL...",
+  "Analysing niche and market...",
+  "Writing 10 subject lines...",
+  "Applying psychological frameworks...",
+  "Crafting 5 email bodies...",
+  "Building 50 rotation combinations...",
+  "Finalising your queue...",
+];
+
+// Framework badge colour map
+const FW_CLASS = {
+  "Curiosity Gap":    "fw-curiosity",
+  "FOMO":             "fw-fomo",
+  "Pain Agitation":   "fw-pain",
+  "Social Proof":     "fw-social",
+  "Pattern Interrupt":"fw-pattern",
+  "Authority":        "fw-authority",
+  "Scarcity":         "fw-scarcity",
+  "Story Hook":       "fw-story",
+  "Direct Challenge": "fw-challenge",
+  "Reverse Psychology":"fw-reverse",
+};
+
+// ── Boot ─────────────────────────────────────────────────────────────────────
+document.addEventListener("DOMContentLoaded", () => {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    try {
+      state = JSON.parse(saved);
+      if (state.combinations?.length) renderAll();
+    } catch(e) { /* fresh start */ }
+  }
+  document.getElementById("today-date").textContent = new Date().toLocaleDateString("en-US", { weekday:"short", month:"short", day:"numeric" });
+  document.getElementById("aff-url").addEventListener("keydown", e => { if (e.key === "Enter") generate(); });
+});
+
+// ── Generate ─────────────────────────────────────────────────────────────────
+async function generate() {
+  const url = document.getElementById("aff-url").value.trim();
+  if (!url) { document.getElementById("aff-url").focus(); return; }
+
+  showOverlay(true);
+  document.getElementById("forge-btn").disabled = true;
+
+  let si = 0;
+  const iv = setInterval(() => {
+    document.getElementById("step-text").textContent = STEPS[si % STEPS.length];
+    si++;
+  }, 900);
+
+  try {
+    const res = await fetch("/.netlify/functions/generateEmails", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        affiliateUrl: url,
+        niche: document.getElementById("niche").value.trim() || null,
+        customNote: document.getElementById("custom-note").value.trim() || null,
+      }),
+    });
+
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+
+    // Build state
+    state = {
+      affiliateUrl: url,
+      niche: data.niche || "",
+      offerContext: data.offerContext || "",
+      subjectLines: data.subjectLines || [],
+      emailBodies: data.emailBodies || [],
+      combinations: data.combinations || [],
+      currentIndex: 0,
+      sentCount: 0,
+      generatedAt: data.generatedAt,
+    };
+
+    saveState();
+    renderAll();
+    toast("✓ Generated 10 subjects + 5 emails · 50 combinations ready");
+
+  } catch(err) {
+    toast("Error: " + err.message, true);
+  } finally {
+    clearInterval(iv);
+    showOverlay(false);
+    document.getElementById("forge-btn").disabled = false;
+  }
+}
+
+// ── Render everything ─────────────────────────────────────────────────────────
+function renderAll() {
+  document.getElementById("empty-state").style.display = "none";
+  document.getElementById("main-content").style.display = "block";
+  document.getElementById("stats-row").style.display = "grid";
+  document.getElementById("rotator-section").style.display = "block";
+
+  // Nav badge
+  if (state.niche) document.getElementById("nav-offer-niche").textContent = state.niche + " · MLGS";
+
+  // Offer context
+  document.getElementById("offer-context-text").textContent = state.offerContext;
+  document.getElementById("offer-url-text").textContent = state.affiliateUrl;
+
+  updateStats();
+  renderToday();
+  renderSubjects();
+  renderBodies();
+  renderCombos();
+  renderQueue();
+}
+
+// ── Today's send ──────────────────────────────────────────────────────────────
+function renderToday() {
+  const combo = getCurrentCombo();
+  if (!combo) {
+    // All 50 sent
+    document.getElementById("today-subject").textContent = "🎉 All 50 combinations sent!";
+    document.getElementById("today-framework").textContent = "Regenerate a new batch to continue";
+    document.getElementById("today-subj-display").textContent = "All done!";
+    document.getElementById("today-body-display").textContent = "You've sent all 50 combinations for this offer. Click 'New Offer' or reset the rotator.";
+    return;
+  }
+
+  const subj = state.subjectLines.find(s => s.id === combo.subjectId);
+  const body = state.emailBodies.find(b => b.id === combo.bodyId);
+
+  if (!subj || !body) return;
+
+  // Sidebar today card
+  document.getElementById("today-subject").textContent = subj.subject;
+  document.getElementById("today-framework").textContent = subj.framework + " / " + body.framework;
+
+  // Right panel today tab
+  document.getElementById("today-subj-display").textContent = subj.subject;
+  document.getElementById("today-preview-display").textContent = "Preview: " + subj.previewText;
+  document.getElementById("today-fw-display").textContent = subj.framework + " × " + body.framework;
+  document.getElementById("today-hook-display").textContent = body.psychHook;
+  document.getElementById("today-body-display").textContent = body.body;
+  document.getElementById("today-wc-display").textContent = body.wordCount + " words";
+}
+
+// ── Subjects ──────────────────────────────────────────────────────────────────
+function renderSubjects() {
+  const el = document.getElementById("subjects-list");
+  el.innerHTML = state.subjectLines.map(s => `
+    <div class="subj-card">
+      <div class="subj-header">
+        <span class="subj-num">#${s.id}</span>
+        <span class="fw-badge ${FW_CLASS[s.framework] || 'fw-curiosity'}">${s.framework}</span>
+      </div>
+      <div class="subj-text">${s.subject}</div>
+      <div class="subj-preview">Preview: ${s.previewText}</div>
+      <div class="subj-actions">
+        <button class="copy-btn" onclick="copyText('${esc(s.subject)}')">Copy Subject</button>
+        <button class="use-today-btn" onclick="useSubjectToday(${s.id})">Use Today</button>
+      </div>
+    </div>
+  `).join("");
+}
+
+// ── Email bodies ──────────────────────────────────────────────────────────────
+function renderBodies() {
+  const el = document.getElementById("bodies-list");
+  el.innerHTML = state.emailBodies.map(b => `
+    <div class="email-card">
+      <div class="email-header">
+        <div class="email-meta">
+          <div class="email-fw">${b.framework}</div>
+          <div class="email-hook">${b.psychHook}</div>
+        </div>
+        <div class="email-wc">${b.wordCount} words</div>
+      </div>
+      <div class="email-body-text">${b.body}</div>
+      <div class="email-link-note">⚠️ Replace [YOUR LINK] with your affiliate link</div>
+      <div style="display:flex;gap:8px">
+        <button class="copy-btn" onclick="copyText('${esc(b.body)}')">Copy Body</button>
+        <button class="copy-btn" onclick="copyEmailFull(${b.id})">Copy with Subject</button>
+      </div>
+    </div>
+  `).join("");
+}
+
+// ── Combos grid ───────────────────────────────────────────────────────────────
+function renderCombos() {
+  const el = document.getElementById("combos-grid");
+  el.innerHTML = state.combinations.map(c => {
+    const isToday = state.combinations.indexOf(c) === state.currentIndex;
+    const cls = c.sent ? "sent-combo" : isToday ? "today-combo" : "";
+    const statusTxt = c.sent
+      ? `✓ Sent ${c.sentDate ? new Date(c.sentDate).toLocaleDateString() : ""}`
+      : isToday ? "📬 Today" : "Pending";
+    const statusCls = c.sent ? "status-sent" : isToday ? "status-today" : "status-pending";
+    return `
+      <div class="combo-card ${cls}" onclick="jumpToCombo(${c.id - 1})">
+        <div class="combo-num">Combo #${c.id}</div>
+        <div class="combo-subj">${c.subject}</div>
+        <div class="combo-fw">${c.framework}</div>
+        <div class="combo-status ${statusCls}">${statusTxt}</div>
+      </div>`;
+  }).join("");
+}
+
+// ── Queue list (sidebar) ──────────────────────────────────────────────────────
+function renderQueue() {
+  const el = document.getElementById("queue-list");
+  // Show next 10 unsent + last 5 sent
+  const visible = state.combinations.slice(0, Math.min(state.currentIndex + 8, 50));
+  el.innerHTML = visible.map((c, i) => {
+    const isToday = i === state.currentIndex;
+    const numCls = c.sent ? "done" : isToday ? "today" : "pending";
+    return `
+      <div class="queue-item ${c.sent ? "sent" : ""} ${isToday ? "active" : ""}" onclick="jumpToCombo(${i})">
+        <div class="queue-num ${numCls}">${c.sent ? "✓" : isToday ? "→" : c.id}</div>
+        <div class="queue-text">
+          <div class="queue-subject">${c.subject}</div>
+          <div class="queue-fw">${c.framework}</div>
+        </div>
+        ${c.sentDate ? `<div class="queue-date">${new Date(c.sentDate).toLocaleDateString("en-US",{month:"short",day:"numeric"})}</div>` : ""}
+      </div>`;
+  }).join("");
+  document.getElementById("queue-progress-text").textContent = `${state.sentCount} / ${state.combinations.length}`;
+}
+
+// ── Stats ─────────────────────────────────────────────────────────────────────
+function updateStats() {
+  const total = state.combinations.length;
+  const sent = state.sentCount;
+  const remaining = total - sent;
+  document.getElementById("stat-sent").textContent = sent;
+  document.getElementById("stat-remaining").textContent = remaining;
+  document.getElementById("stat-total").textContent = total;
+  const pct = total > 0 ? Math.round((sent / total) * 100) : 0;
+  document.getElementById("progress-bar").style.width = pct + "%";
+  document.getElementById("progress-label").textContent = `${sent} of ${total} sent`;
+}
+
+// ── Mark sent ─────────────────────────────────────────────────────────────────
+function markSent() {
+  if (state.currentIndex >= state.combinations.length) return;
+  state.combinations[state.currentIndex].sent = true;
+  state.combinations[state.currentIndex].sentDate = new Date().toISOString();
+  state.sentCount++;
+
+  // Advance to next unsent
+  let next = state.currentIndex + 1;
+  while (next < state.combinations.length && state.combinations[next].sent) next++;
+  state.currentIndex = next;
+
+  saveState();
+  renderAll();
+  toast("✓ Marked sent · Tomorrow's email is ready");
+}
+
+// ── Jump to specific combo ────────────────────────────────────────────────────
+function jumpToCombo(idx) {
+  if (idx < 0 || idx >= state.combinations.length) return;
+  state.currentIndex = idx;
+  saveState();
+  renderToday();
+  renderCombos();
+  renderQueue();
+  switchTabById("today");
+  toast("Jumped to combo #" + (idx + 1));
+}
+
+// ── Use specific subject as today ─────────────────────────────────────────────
+function useSubjectToday(subjectId) {
+  const idx = state.combinations.findIndex(
+    c => c.subjectId === subjectId && !c.sent
+  );
+  if (idx !== -1) {
+    state.currentIndex = idx;
+    saveState();
+    renderToday();
+    renderCombos();
+    renderQueue();
+    switchTabById("today");
+    toast("Subject set for today");
+  }
+}
+
+// ── Copy functions ────────────────────────────────────────────────────────────
+function copyTodaySubject() {
+  const combo = getCurrentCombo();
+  if (!combo) return;
+  const subj = state.subjectLines.find(s => s.id === combo.subjectId);
+  if (subj) { copyText(subj.subject); toast("Subject copied!"); }
+}
+
+function copyTodayBody() {
+  const combo = getCurrentCombo();
+  if (!combo) return;
+  const body = state.emailBodies.find(b => b.id === combo.bodyId);
+  if (body) { copyText(body.body); toast("Email body copied!"); }
+}
+
+function copyTodayFull() {
+  const combo = getCurrentCombo();
+  if (!combo) return;
+  const subj = state.subjectLines.find(s => s.id === combo.subjectId);
+  const body = state.emailBodies.find(b => b.id === combo.bodyId);
+  if (subj && body) {
+    copyText(`SUBJECT: ${subj.subject}\nPREVIEW: ${subj.previewText}\n\n${body.body}`);
+    toast("Subject + body copied!");
+  }
+}
+
+function copyEmailFull(bodyId) {
+  const body = state.emailBodies.find(b => b.id === bodyId);
+  const combo = state.combinations.find(c => c.bodyId === bodyId && !c.sent);
+  const subj = combo ? state.subjectLines.find(s => s.id === combo.subjectId) : state.subjectLines[0];
+  if (body && subj) {
+    copyText(`SUBJECT: ${subj.subject}\nPREVIEW: ${subj.previewText}\n\n${body.body}`);
+    toast("Subject + body copied!");
+  }
+}
+
+function copyAllSubjects() {
+  const text = state.subjectLines.map(s =>
+    `[${s.framework}]\nSubject: ${s.subject}\nPreview: ${s.previewText}`
+  ).join("\n\n");
+  copyText(text);
+  toast("All 10 subjects copied!");
+}
+
+function copyAllBodies() {
+  const text = state.emailBodies.map(b =>
+    `[${b.framework}]\n${b.psychHook}\n\n${b.body}`
+  ).join("\n\n─────\n\n");
+  copyText(text);
+  toast("All 5 email bodies copied!");
+}
+
+// ── Export log ────────────────────────────────────────────────────────────────
+function exportLog() {
+  const sent = state.combinations.filter(c => c.sent);
+  if (!sent.length) { toast("No sends logged yet", true); return; }
+  const rows = ["Date,Combo,Subject,Frameworks"];
+  sent.forEach(c => {
+    rows.push(`"${c.sentDate ? new Date(c.sentDate).toLocaleDateString() : ""}","#${c.id}","${c.subject.replace(/"/g,'""')}","${c.framework}"`);
+  });
+  const blob = new Blob([rows.join("\n")], { type: "text/csv" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "forge-mail-sent-log.csv";
+  a.click();
+  toast("Sent log exported");
+}
+
+// ── Reset ─────────────────────────────────────────────────────────────────────
+function resetRotator() {
+  if (!confirm("Reset the rotator? This will mark all combinations as unsent and start from the beginning.")) return;
+  state.combinations = state.combinations.map(c => ({ ...c, sent: false, sentDate: null }));
+  state.currentIndex = 0;
+  state.sentCount = 0;
+  saveState();
+  renderAll();
+  toast("Rotator reset — back to combo #1");
+}
+
+function resetAll() {
+  if (!confirm("Clear everything and start with a new offer?")) return;
+  localStorage.removeItem(STORAGE_KEY);
+  state = { affiliateUrl:"",niche:"",offerContext:"",subjectLines:[],emailBodies:[],combinations:[],currentIndex:0,sentCount:0,generatedAt:null };
+  document.getElementById("empty-state").style.display = "flex";
+  document.getElementById("main-content").style.display = "none";
+  document.getElementById("stats-row").style.display = "none";
+  document.getElementById("rotator-section").style.display = "none";
+  document.getElementById("aff-url").value = "";
+  document.getElementById("niche").value = "";
+  document.getElementById("custom-note").value = "";
+  document.getElementById("nav-offer-niche").textContent = "MLGS · 15,600 leads";
+  toast("Cleared — ready for new offer");
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function getCurrentCombo() {
+  if (!state.combinations.length) return null;
+  if (state.currentIndex >= state.combinations.length) return null;
+  return state.combinations[state.currentIndex];
+}
+
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function copyText(text) {
+  navigator.clipboard.writeText(text).catch(() => {
+    const ta = document.createElement("textarea");
+    ta.value = text; document.body.appendChild(ta);
+    ta.select(); document.execCommand("copy");
+    document.body.removeChild(ta);
+  });
+}
+
+function esc(str) {
+  return (str || "").replace(/'/g, "\\'").replace(/"/g, "&quot;");
+}
+
+function toast(msg, isErr = false) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.style.background = isErr ? "var(--danger)" : "var(--accent)";
+  t.style.color = isErr ? "#fff" : "#000";
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 2200);
+}
+
+function showOverlay(show) {
+  document.getElementById("overlay").classList.toggle("on", show);
+}
+
+function switchTab(id, el) {
+  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+  document.querySelectorAll(".tab-content").forEach(t => t.classList.remove("active"));
+  el.classList.add("active");
+  document.getElementById("tab-" + id)?.classList.add("active");
+}
+
+function switchTabById(id) {
+  document.querySelectorAll(".tab").forEach((t,i) => {
+    const map = ["today","subjects","bodies","combos"];
+    t.classList.toggle("active", map[i] === id);
+  });
+  document.querySelectorAll(".tab-content").forEach(t => {
+    t.classList.toggle("active", t.id === "tab-" + id);
+  });
+}
+</script>
+</body>
+</html>
