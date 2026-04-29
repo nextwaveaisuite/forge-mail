@@ -29,6 +29,8 @@
     .nav-stat b{color:var(--accent);font-weight:700}
     .btn-import{padding:8px 18px;border-radius:var(--rs);font-family:var(--font-d);font-weight:700;font-size:13px;cursor:pointer;border:none;background:var(--accent);color:#000;transition:all 0.15s;white-space:nowrap}
     .btn-import:hover{background:#00ffb0;transform:translateY(-1px)}
+    .btn-logout{padding:7px 14px;border-radius:var(--rs);font-family:var(--font-d);font-weight:700;font-size:12px;cursor:pointer;border:1px solid rgba(255,71,87,0.3);background:none;color:var(--danger);transition:all 0.15s;white-space:nowrap}
+    .btn-logout:hover{background:rgba(255,71,87,0.08);border-color:var(--danger)}
 
     /* ── LAYOUT ── */
     .app{display:grid;grid-template-columns:260px 1fr;min-height:calc(100vh - 56px)}
@@ -391,7 +393,7 @@
     <span class="nav-stat">Own <b id="nav-own">—</b></span>
     <span class="nav-stat" id="nav-user-email" style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
     <button type="button" class="btn-import" onclick="openModal()">+ Import Leads</button>
-    <button type="button" style="padding:6px 12px;border-radius:3px;font-size:12px;cursor:pointer;border:1px solid rgba(255,255,255,0.1);background:none;color:var(--muted);font-family:var(--font-m);transition:all 0.15s" onclick="logout()">Logout</button>
+    <button type="button" class="btn-logout" onclick="logout()">Logout</button>
   </div>
 </nav>
 
