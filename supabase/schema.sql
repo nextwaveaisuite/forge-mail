@@ -113,3 +113,74 @@ begin
   return inserted;
 end;
 $$;
+-- Forge Leads — Duplicate Detection Schema
+-- Run this in Supabase SQL Editor
+
+-- ─── DUPLICATES TABLE ─────────────────────────────────────────────────────────
+create table if not exists lead_duplicates (
+  id           uuid primary key default uuid_generate_v4(),
+  user_id      uuid references auth.users(id) on delete cascade,
+  email        text not null,
+  first_name   text,
+  last_name    text,
+  phone        text,
+  postcode     text,
+  state        text,
+  country      text,
+  source_file  text,    -- which batch/file it came from
+  detected_at  timestamptz default now(),
+  reviewed     boolean default false,
+  action       text      -- 'deleted' | 'kept' | null (pending)
+);
+
+-- Indexes
+create index if not exists dupes_user_idx  on lead_duplicates(user_id);
+create index if not exists dupes_email_idx on lead_duplicates(email);
+create index if not exists dupes_reviewed  on lead_duplicates(reviewed);
+
+-- RLS
+alter table lead_duplicates enable row level security;
+
+create policy if not exists "own duplicates"
+  on lead_duplicates for all
+  using (auth.uid() = user_id);
+
+-- ─── RPC: get duplicate stats ─────────────────────────────────────────────────
+create or replace function get_duplicate_stats(p_user_id uuid)
+returns jsonb language plpgsql as $$
+declare
+  total_dupes int;
+  reviewed    int;
+  pending     int;
+begin
+  select count(*) into total_dupes
+  from lead_duplicates
+  where user_id = p_user_id;
+
+  select count(*) into reviewed
+  from lead_duplicates
+  where user_id = p_user_id and reviewed = true;
+
+  pending := total_dupes - reviewed;
+
+  return jsonb_build_object(
+    'total',    total_dupes,
+    'reviewed', reviewed,
+    'pending',  pending
+  );
+end;
+$$;
+
+-- ─── RPC: bulk delete all duplicates ─────────────────────────────────────────
+create or replace function delete_all_duplicates(p_user_id uuid)
+returns int language plpgsql as $$
+declare
+  deleted_count int;
+begin
+  delete from lead_duplicates
+  where user_id = p_user_id;
+
+  get diagnostics deleted_count = row_count;
+  return deleted_count;
+end;
+$$;
