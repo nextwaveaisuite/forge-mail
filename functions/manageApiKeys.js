@@ -1,7 +1,9 @@
 // functions/manageApiKeys.js
+// Fully self-contained — no external imports
+// Handles: create, list, revoke, usage, stats
+
 const { createClient } = require("@supabase/supabase-js");
 const crypto = require("crypto");
-const { hashKey } = require("../core/apiKeyMiddleware");
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -24,24 +26,32 @@ const VALID_PERMISSIONS = [
   "admin",
 ];
 
+// Hash a plaintext key — inline, no import needed
+function hashKey(plaintextKey) {
+  return crypto.createHash("sha256").update(plaintextKey).digest("hex");
+}
+
 exports.handler = async (event) => {
   if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: HEADERS, body: "" };
   if (event.httpMethod !== "POST")    return { statusCode: 405, headers: HEADERS, body: "Method not allowed" };
 
-  const body = JSON.parse(event.body || "{}");
-  const { action, userId } = body;
+  let body;
+  try {
+    body = JSON.parse(event.body || "{}");
+  } catch(e) {
+    return badRequest("Invalid JSON body");
+  }
 
-  if (!userId) return { statusCode: 400, headers: HEADERS, body: JSON.stringify({ error: "userId required" }) };
+  const { action, userId } = body;
+  if (!userId) return badRequest("userId required");
 
   try {
     switch (action) {
 
+      // ── CREATE ────────────────────────────────────────────────────────
       case "create": {
         const { name, permissions } = body;
-
-        if (!name || !name.trim()) {
-          return badRequest("Key name is required.");
-        }
+        if (!name || !name.trim()) return badRequest("Key name is required.");
 
         const { count } = await supabase
           .from("api_keys")
@@ -54,8 +64,8 @@ exports.handler = async (event) => {
             statusCode: 429,
             headers: HEADERS,
             body: JSON.stringify({
-              error:   "Rate limit exceeded",
-              message: `Maximum ${MAX_KEYS_PER_USER} active API keys per account.`,
+              error: "Rate limit exceeded",
+              message: `Maximum ${MAX_KEYS_PER_USER} active API keys per account. Revoke an existing key first.`,
             }),
           };
         }
@@ -66,6 +76,8 @@ exports.handler = async (event) => {
           return badRequest(`Invalid permissions: ${invalidPerms.join(", ")}`);
         }
 
+        // Generate cryptographically secure key
+        // Format: frgk_<48 hex chars> = 53 chars total
         const randomBytes  = crypto.randomBytes(24).toString("hex");
         const plaintextKey = `frgk_${randomBytes}`;
         const hashedKey    = hashKey(plaintextKey);
@@ -86,6 +98,7 @@ exports.handler = async (event) => {
 
         if (error) throw error;
 
+        // Return plaintext ONCE — never stored, never shown again
         return {
           statusCode: 201,
           headers: HEADERS,
@@ -102,6 +115,7 @@ exports.handler = async (event) => {
         };
       }
 
+      // ── LIST ──────────────────────────────────────────────────────────
       case "list": {
         const { data, error } = await supabase
           .from("api_keys")
@@ -120,6 +134,7 @@ exports.handler = async (event) => {
         });
       }
 
+      // ── REVOKE ────────────────────────────────────────────────────────
       case "revoke": {
         const { keyId } = body;
         if (!keyId) return badRequest("keyId required");
@@ -131,7 +146,7 @@ exports.handler = async (event) => {
           .eq("user_id", userId)
           .single();
 
-        if (!key)                    return badRequest("Key not found");
+        if (!key)                     return badRequest("Key not found");
         if (key.status === "revoked") return badRequest("Key is already revoked");
 
         const { error } = await supabase
@@ -150,6 +165,7 @@ exports.handler = async (event) => {
         });
       }
 
+      // ── USAGE ─────────────────────────────────────────────────────────
       case "usage": {
         const { keyId, limit: lim = 50 } = body;
         if (!keyId) return badRequest("keyId required");
@@ -166,10 +182,11 @@ exports.handler = async (event) => {
         return ok({ usage: data || [], total: count || 0, key_id: keyId });
       }
 
+      // ── STATS ─────────────────────────────────────────────────────────
       case "stats": {
         const { data: keys } = await supabase
           .from("api_keys")
-          .select("key_id, name, key_prefix, status, use_count, last_used_at")
+          .select("status, use_count")
           .eq("user_id", userId);
 
         const active   = (keys || []).filter(k => k.status === "active").length;
@@ -180,7 +197,7 @@ exports.handler = async (event) => {
       }
 
       default:
-        return { statusCode: 400, headers: HEADERS, body: JSON.stringify({ error: `Unknown action: ${action}` }) };
+        return badRequest(`Unknown action: ${action}`);
     }
 
   } catch (err) {
@@ -189,5 +206,5 @@ exports.handler = async (event) => {
   }
 };
 
-function ok(data)       { return { statusCode: 200, headers: HEADERS, body: JSON.stringify(data) }; }
-function badRequest(msg){ return { statusCode: 400, headers: HEADERS, body: JSON.stringify({ error: msg }) }; }
+function ok(data)        { return { statusCode: 200, headers: HEADERS, body: JSON.stringify(data) }; }
+function badRequest(msg) { return { statusCode: 400, headers: HEADERS, body: JSON.stringify({ error: msg }) }; }
