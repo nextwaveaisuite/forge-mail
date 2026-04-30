@@ -16,6 +16,7 @@
     }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     body{background:var(--bg);color:var(--text);font-family:var(--font-m);font-size:14px;line-height:1.7;min-height:100vh}
+
     nav{height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid var(--border);background:rgba(8,8,16,0.97);position:sticky;top:0;z-index:200}
     .logo{font-family:var(--font-d);font-weight:800;font-size:18px;letter-spacing:-0.5px;color:white;text-decoration:none}
     .logo span{color:var(--accent)}
@@ -23,90 +24,81 @@
     .nav-right{display:flex;align-items:center;gap:8px}
     .nav-link{color:var(--muted);text-decoration:none;font-size:12px;padding:5px 10px;border-radius:var(--rs);border:1px solid var(--border);transition:all 0.15s}
     .nav-link:hover{color:var(--text)}
-    .btn-logout{padding:5px 12px;border-radius:var(--rs);font-family:var(--font-d);font-weight:700;font-size:11px;cursor:pointer;border:1px solid rgba(255,71,87,0.3);background:none;color:var(--danger);transition:all 0.15s}
+    .btn-logout{padding:5px 12px;border-radius:var(--rs);font-family:var(--font-d);font-weight:700;font-size:11px;cursor:pointer;border:1px solid rgba(255,71,87,0.3);background:none;color:var(--danger)}
     .btn-logout:hover{background:rgba(255,71,87,0.08)}
+
     .page{max-width:900px;margin:0 auto;padding:36px 24px}
-    .page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:12px}
-    .page-title{font-family:var(--font-d);font-size:24px;font-weight:800;letter-spacing:-0.5px}
-    .page-sub{font-size:13px;color:var(--muted);margin-top:4px}
+    .page-title{font-family:var(--font-d);font-size:24px;font-weight:800;letter-spacing:-0.5px;margin-bottom:4px}
+    .page-sub{font-size:13px;color:var(--muted);margin-bottom:28px}
+
     .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:24px}
     .stat-cell{background:var(--surface);padding:18px 20px;text-align:center}
     .stat-num{font-family:var(--font-d);font-size:28px;font-weight:800;color:var(--accent);display:block;line-height:1}
     .stat-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-top:4px;display:block}
+
     .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:24px;margin-bottom:16px}
     .card-title{font-family:var(--font-d);font-size:15px;font-weight:700;margin-bottom:16px}
-    .new-key-form{display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end}
+
+    .form-row{display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end}
     .field label{display:block;font-size:11px;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px}
     .field input,.field select{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-m);font-size:13px;padding:10px 12px;border-radius:var(--rs);outline:none;transition:border 0.15s}
     .field input:focus,.field select:focus{border-color:var(--border-accent)}
     .field input::placeholder{color:var(--muted)}
-    .create-btn{padding:10px 20px;background:var(--accent);color:#000;border:none;border-radius:var(--rs);font-family:var(--font-d);font-weight:700;font-size:13px;cursor:pointer;transition:all 0.15s;white-space:nowrap}
-    .create-btn:hover{background:#00ffb0}
-    .create-btn:disabled{opacity:0.45;cursor:not-allowed}
-    .key-reveal{background:rgba(0,245,160,0.04);border:1px solid rgba(0,245,160,0.25);border-radius:var(--r);padding:20px;margin-top:16px;display:none}
-    .key-reveal-title{font-family:var(--font-d);font-size:14px;font-weight:700;color:var(--accent);margin-bottom:6px}
-    .key-reveal-warn{font-size:12px;color:var(--warn);margin-bottom:14px;padding:8px 12px;background:rgba(255,165,2,0.06);border:1px solid rgba(255,165,2,0.2);border-radius:var(--rs)}
-    .key-string{font-family:var(--font-m);font-size:13px;color:var(--text);background:var(--surface2);border:1px solid var(--border);padding:12px 14px;border-radius:var(--rs);word-break:break-all;letter-spacing:0.05em;margin-bottom:10px}
-    .copy-key-btn{padding:8px 18px;background:var(--accent);color:#000;border:none;border-radius:var(--rs);font-family:var(--font-d);font-weight:700;font-size:13px;cursor:pointer;transition:all 0.15s}
-    .copy-key-btn:hover{background:#00ffb0}
-    .keys-list{display:flex;flex-direction:column;gap:10px}
-    .key-row{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:16px 18px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;transition:border 0.15s}
-    .key-row:hover{border-color:rgba(255,255,255,0.12)}
-    .key-row.revoked{opacity:0.5}
-    .key-info{flex:1;min-width:0}
-    .key-name{font-family:var(--font-d);font-size:14px;font-weight:700;margin-bottom:3px}
-    .key-display{font-size:12px;color:var(--accent2);letter-spacing:0.08em;margin-bottom:4px}
-    .key-meta{font-size:11px;color:var(--muted);display:flex;flex-wrap:wrap;gap:12px}
-    .key-perms{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
-    .perm-badge{font-size:10px;padding:2px 8px;border-radius:3px;background:rgba(0,180,216,0.08);color:var(--accent2);border:1px solid rgba(0,180,216,0.2)}
-    .status-active{color:var(--accent)}
-    .status-revoked{color:var(--danger)}
-    .key-actions{display:flex;gap:6px;flex-shrink:0}
-    .key-btn{padding:6px 12px;border-radius:var(--rs);font-size:11px;cursor:pointer;border:1px solid var(--border);background:none;color:var(--muted);transition:all 0.15s;font-family:var(--font-m)}
-    .key-btn:hover{color:var(--text);border-color:rgba(255,255,255,0.2)}
-    .key-btn.revoke:hover{color:var(--danger);border-color:rgba(255,71,87,0.3)}
-    .modal-bg{position:fixed;inset:0;background:rgba(8,8,16,0.88);display:none;align-items:center;justify-content:center;z-index:300;padding:16px}
-    .modal-bg.open{display:flex}
-    .modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);width:100%;max-width:680px;max-height:85vh;overflow-y:auto}
-    .modal-header{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--surface)}
-    .modal-title{font-family:var(--font-d);font-size:15px;font-weight:700}
-    .modal-close{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer}
-    .modal-close:hover{color:var(--text)}
-    .modal-body{padding:18px 22px}
-    table{width:100%;border-collapse:collapse;font-size:12px}
-    th{padding:8px 12px;text-align:left;border-bottom:1px solid var(--border);color:var(--muted);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;font-weight:400}
-    td{padding:9px 12px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
-    tr:last-child td{border-bottom:none}
-    .docs-box{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:12px}
-    .docs-title{font-family:var(--font-d);font-size:13px;font-weight:700;color:var(--accent);margin-bottom:10px}
-    .code-block{background:var(--surface3);border:1px solid var(--border);border-radius:var(--rs);padding:14px;font-size:12px;color:var(--accent2);overflow-x:auto;margin-bottom:8px;white-space:pre}
-    .code-comment{color:var(--muted)}
+
+    .btn-create{padding:10px 22px;background:var(--accent);color:#000;border:none;border-radius:var(--rs);font-family:var(--font-d);font-weight:700;font-size:13px;cursor:pointer;transition:all 0.15s;white-space:nowrap;height:42px}
+    .btn-create:hover{background:#00ffb0}
+    .btn-create:disabled{opacity:0.45;cursor:not-allowed}
+
+    .key-reveal{background:rgba(0,245,160,0.04);border:2px solid rgba(0,245,160,0.3);border-radius:var(--r);padding:20px;margin-top:16px;display:none}
+    .reveal-title{font-family:var(--font-d);font-size:14px;font-weight:700;color:var(--accent);margin-bottom:8px}
+    .reveal-warn{font-size:12px;color:var(--warn);background:rgba(255,165,2,0.06);border:1px solid rgba(255,165,2,0.2);border-radius:var(--rs);padding:8px 12px;margin-bottom:12px}
+    .key-box{font-family:var(--font-m);font-size:13px;color:var(--text);background:var(--surface2);border:1px solid var(--border);padding:12px 14px;border-radius:var(--rs);word-break:break-all;letter-spacing:0.04em;margin-bottom:12px;user-select:all}
+    .btn-copy-key{padding:9px 20px;background:var(--accent);color:#000;border:none;border-radius:var(--rs);font-family:var(--font-d);font-weight:700;font-size:13px;cursor:pointer;transition:all 0.15s}
+    .btn-copy-key:hover{background:#00ffb0}
+
+    /* KEY HISTORY */
+    .keys-list{display:flex;flex-direction:column;gap:8px}
+    .key-item{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:16px 18px}
+    .key-item.revoked{opacity:0.5}
+    .key-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    .key-name{font-family:var(--font-d);font-size:14px;font-weight:700}
+    .key-status-active{font-size:11px;color:var(--accent);background:rgba(0,245,160,0.08);border:1px solid rgba(0,245,160,0.2);padding:2px 8px;border-radius:3px}
+    .key-status-revoked{font-size:11px;color:var(--danger);background:rgba(255,71,87,0.08);border:1px solid rgba(255,71,87,0.2);padding:2px 8px;border-radius:3px}
+    .key-masked{font-size:12px;color:var(--accent2);letter-spacing:0.06em;margin:6px 0 4px}
+    .key-meta{display:flex;flex-wrap:wrap;gap:14px;font-size:11px;color:var(--muted);margin-bottom:8px}
+    .key-perms{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px}
+    .perm{font-size:10px;padding:2px 8px;border-radius:3px;background:rgba(0,180,216,0.08);color:var(--accent2);border:1px solid rgba(0,180,216,0.2)}
+    .key-actions{display:flex;gap:6px}
+    .btn-sm{padding:5px 12px;border-radius:var(--rs);font-size:11px;cursor:pointer;border:1px solid var(--border);background:none;color:var(--muted);transition:all 0.15s;font-family:var(--font-m)}
+    .btn-sm:hover{color:var(--text);border-color:rgba(255,255,255,0.2)}
+    .btn-sm.danger:hover{color:var(--danger);border-color:rgba(255,71,87,0.3)}
+
     .empty{text-align:center;padding:40px 20px;color:var(--muted)}
-    .empty-icon{font-size:36px;margin-bottom:12px;opacity:0.3}
-    .spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(0,0,0,0.2);border-top-color:#000;border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:5px}
-    @keyframes spin{to{transform:rotate(360deg)}}
+    .empty-icon{font-size:36px;margin-bottom:10px;opacity:0.3}
+
+    /* USAGE PANEL inside card */
+    .usage-panel{display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+    .usage-panel.open{display:block}
+    .usage-row{display:flex;gap:12px;padding:6px 0;border-bottom:1px solid var(--border);font-size:11px}
+    .usage-row:last-child{border-bottom:none}
+    .usage-endpoint{color:var(--accent2);flex:1}
+    .usage-time{color:var(--muted);flex-shrink:0}
+
+    /* DOCS */
+    .docs-box{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:18px;margin-bottom:12px}
+    .docs-label{font-family:var(--font-d);font-size:12px;font-weight:700;color:var(--accent);margin-bottom:10px}
+    .code{background:var(--surface3);border:1px solid var(--border);border-radius:var(--rs);padding:14px;font-size:12px;color:var(--accent2);overflow-x:auto;white-space:pre;line-height:1.8}
+    .cm{color:var(--muted)}
+
     .toast{position:fixed;bottom:24px;right:24px;padding:10px 20px;border-radius:4px;font-family:var(--font-d);font-weight:700;font-size:13px;z-index:9999;transform:translateY(60px);opacity:0;transition:all 0.25s;pointer-events:none}
     .toast.show{transform:translateY(0);opacity:1}
-    @media(max-width:600px){.new-key-form{grid-template-columns:1fr}.stats-row{grid-template-columns:1fr}}
+
+    @media(max-width:640px){.form-row{grid-template-columns:1fr}.stats-row{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
 
 <div class="toast" id="toast"></div>
-
-<div class="modal-bg" id="usage-modal">
-  <div class="modal">
-    <div class="modal-header">
-      <span class="modal-title" id="usage-modal-title">Usage Log</span>
-      <button type="button" class="modal-close" onclick="closeUsageModal()">×</button>
-    </div>
-    <div class="modal-body">
-      <div id="usage-table-wrap">
-        <div class="empty"><div class="empty-icon">📊</div><div>Loading...</div></div>
-      </div>
-    </div>
-  </div>
-</div>
 
 <nav>
   <a href="index.html" class="logo">Forge<span>.</span><span class="logo-tag">API Keys</span></a>
@@ -119,80 +111,80 @@
 
 <div class="page">
 
-  <div class="page-header">
-    <div>
-      <div class="page-title">API Keys</div>
-      <div class="page-sub">Securely connect external systems to Forge Mail</div>
-    </div>
-  </div>
+  <div class="page-title">API Keys</div>
+  <div class="page-sub">Generate secure keys to connect external systems to Forge Mail</div>
 
+  <!-- STATS -->
   <div class="stats-row">
-    <div class="stat-cell"><span class="stat-num" id="stat-active">—</span><span class="stat-lbl">Active Keys</span></div>
-    <div class="stat-cell"><span class="stat-num" id="stat-revoked">—</span><span class="stat-lbl">Revoked Keys</span></div>
-    <div class="stat-cell"><span class="stat-num" id="stat-use">—</span><span class="stat-lbl">Total API Calls</span></div>
+    <div class="stat-cell"><span class="stat-num" id="s-active">0</span><span class="stat-lbl">Active Keys</span></div>
+    <div class="stat-cell"><span class="stat-num" id="s-revoked">0</span><span class="stat-lbl">Revoked Keys</span></div>
+    <div class="stat-cell"><span class="stat-num" id="s-calls">0</span><span class="stat-lbl">Total API Calls</span></div>
   </div>
 
+  <!-- CREATE -->
   <div class="card">
-    <div class="card-title">🔑 Create New API Key</div>
-    <div class="new-key-form">
+    <div class="card-title">🔑 Generate New API Key</div>
+    <div class="form-row">
       <div class="field">
-        <label>Key Name / Label</label>
-        <input type="text" id="key-name" placeholder="e.g. Traffic Engine, Zapier, Traffic ROM"/>
+        <label>Key Name</label>
+        <input type="text" id="key-name" placeholder="e.g. Traffic Engine, Traffic ROM, Zapier"/>
       </div>
       <div class="field">
         <label>Permissions</label>
         <select id="key-perms">
           <option value="lead:write,campaign:read">lead:write + campaign:read (default)</option>
-          <option value="lead:write,lead:read,campaign:read,campaign:write">Lead + Campaign full access</option>
-          <option value="lead:write,lead:read,campaign:read,campaign:write,email:send">Full access + Send email</option>
+          <option value="lead:write,lead:read,campaign:read,campaign:write">Lead + Campaign full</option>
+          <option value="lead:write,lead:read,campaign:read,campaign:write,email:send">Full + email:send</option>
           <option value="lead:read,campaign:read">Read only</option>
         </select>
       </div>
-      <button type="button" class="create-btn" id="create-btn" onclick="createKey()">
+      <button type="button" class="btn-create" id="btn-create" onclick="createKey()">
         Generate Key
       </button>
     </div>
 
+    <!-- KEY REVEAL — shown once -->
     <div class="key-reveal" id="key-reveal">
-      <div class="key-reveal-title">✅ New API Key Created</div>
-      <div class="key-reveal-warn">
-        ⚠️ Copy this key now. It will NEVER be shown again after you leave this page.
-      </div>
-      <div class="key-string" id="new-key-string"></div>
-      <button type="button" class="copy-key-btn" id="copy-key-btn" onclick="copyNewKey()">
-        📋 Copy API Key
-      </button>
+      <div class="reveal-title">✅ API Key Created Successfully</div>
+      <div class="reveal-warn">⚠️ Copy this key RIGHT NOW. It will never be shown again after you leave this page.</div>
+      <div class="key-box" id="key-box"></div>
+      <button type="button" class="btn-copy-key" onclick="copyKey()">📋 Copy API Key</button>
     </div>
   </div>
 
+  <!-- KEY HISTORY -->
   <div class="card">
-    <div class="card-title">Your API Keys <span id="keys-count" style="color:var(--muted);font-weight:400;font-size:13px"></span></div>
-    <div class="keys-list" id="keys-list">
-      <div class="empty">
-        <div class="empty-icon">🔑</div>
-        <div>No API keys yet — create your first key above</div>
-      </div>
+    <div class="card-title">
+      All API Keys
+      <span id="key-count" style="color:var(--muted);font-weight:400;font-size:13px;margin-left:8px"></span>
+    </div>
+    <div id="keys-list">
+      <div class="empty"><div class="empty-icon">🔑</div>No API keys yet</div>
     </div>
   </div>
 
+  <!-- DOCS -->
   <div class="card">
-    <div class="card-title">📖 How to Use</div>
+    <div class="card-title">📖 Usage Examples</div>
+
     <div class="docs-box">
-      <div class="docs-title">Ingest a lead from any external system</div>
-      <div class="code-block"><span class="code-comment"># Single lead</span>
+      <div class="docs-label">Send a single lead to Forge Mail</div>
+      <div class="code"><span class="cm"># Replace with your actual API key</span>
 curl -X POST https://mail.nextwaveaisuite.com/.netlify/functions/apiIngest \
-  -H "Authorization: Bearer frgk_your_api_key_here" \
+  -H "Authorization: Bearer frgk_your_key_here" \
   -H "Content-Type: application/json" \
   -d '{
     "email": "john@example.com",
     "first_name": "John",
     "state": "Texas",
-    "country": "USA",
-    "tags": ["traffic-rom", "weight-loss"]
+    "tags": ["traffic-rom"]
   }'</div>
-      <div class="code-block"><span class="code-comment"># Batch up to 500 leads</span>
-curl -X POST https://mail.nextwaveaisuite.com/.netlify/functions/apiIngest \
-  -H "Authorization: Bearer frgk_your_api_key_here" \
+    </div>
+
+    <div class="docs-box">
+      <div class="docs-label">Send up to 500 leads in one call</div>
+      <div class="code">curl -X POST https://mail.nextwaveaisuite.com/.netlify/functions/apiIngest \
+  -H "Authorization: Bearer frgk_your_key_here" \
   -H "Content-Type: application/json" \
   -d '{
     "leads": [
@@ -201,14 +193,14 @@ curl -X POST https://mail.nextwaveaisuite.com/.netlify/functions/apiIngest \
     ]
   }'</div>
     </div>
+
     <div class="docs-box">
-      <div class="docs-title">Success response</div>
-      <div class="code-block">{
+      <div class="docs-label">Success response</div>
+      <div class="code">{
   "success": true,
   "inserted": 2,
   "duplicates": 0,
   "invalid": 0,
-  "total": 2,
   "message": "2 leads ingested via API key: Traffic Engine"
 }</div>
     </div>
@@ -218,187 +210,236 @@ curl -X POST https://mail.nextwaveaisuite.com/.netlify/functions/apiIngest \
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
-const SB_URL  = "YOUR_SUPABASE_URL";
-const SB_ANON = "YOUR_SUPABASE_ANON_KEY";
+// ─── CONFIG — replace with your values ───────────────────────────────
+const SB_URL  = "https://cvwukmghdmmbchgchtsd.supabase.co";
+const SB_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2d3VrbWdoZG1tYmNoZ2NodHNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0Mzg4NjUsImV4cCI6MjA5MzAxNDg2NX0.4LtyvVkVVbWszu2wsItdBSrTvETbv1jPJsShIiyqnE8";
 
 const { createClient } = supabase;
 const sb = createClient(SB_URL, SB_ANON);
 
-let currentUser = null;
-let newKeyPlaintext = null;
+let uid = null;
+let newKeyText = null;
+let allKeys = [];
 
+// ─── Boot ─────────────────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", async () => {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { window.location.href = "login.html"; return; }
-  currentUser = session.user;
-  await loadAll();
+  uid = session.user.id;
+  loadKeys(); // load instantly — no cold start
 });
 
-async function loadAll() {
-  await Promise.all([loadStats(), loadKeys()]);
-}
-
-async function loadStats() {
-  const res = await callFn("manageApiKeys", { action: "stats", userId: currentUser.id });
-  if (res.error) return;
-  setText("stat-active",  res.active  || 0);
-  setText("stat-revoked", res.revoked || 0);
-  setText("stat-use",     (res.totalUse || 0).toLocaleString());
-}
-
+// ─── Load all keys from Supabase directly ─────────────────────────────
 async function loadKeys() {
-  const res = await callFn("manageApiKeys", { action: "list", userId: currentUser.id });
-  if (res.error) { toast(res.error, true); return; }
+  const { data, error } = await sb
+    .from("api_keys")
+    .select("*")
+    .eq("user_id", uid)
+    .order("created_at", { ascending: false });
 
-  const keys = res.keys || [];
-  setText("keys-count", keys.length ? `(${keys.length} / 10)` : "");
+  if (error) { toast("Error loading keys: " + error.message, true); return; }
+
+  allKeys = data || [];
+  renderStats();
+  renderKeys();
+}
+
+// ─── Stats ────────────────────────────────────────────────────────────
+function renderStats() {
+  const active   = allKeys.filter(k => k.status === "active").length;
+  const revoked  = allKeys.filter(k => k.status === "revoked").length;
+  const calls    = allKeys.reduce((s, k) => s + (k.use_count || 0), 0);
+  document.getElementById("s-active").textContent  = active;
+  document.getElementById("s-revoked").textContent = revoked;
+  document.getElementById("s-calls").textContent   = calls.toLocaleString();
+}
+
+// ─── Render key history ───────────────────────────────────────────────
+function renderKeys() {
   const list = document.getElementById("keys-list");
+  const count = document.getElementById("key-count");
+  count.textContent = allKeys.length ? `(${allKeys.length})` : "";
 
-  if (!keys.length) {
-    list.innerHTML = `<div class="empty"><div class="empty-icon">🔑</div><div>No API keys yet — create your first key above</div></div>`;
+  if (!allKeys.length) {
+    list.innerHTML = `<div class="empty"><div class="empty-icon">🔑</div>No API keys yet — generate your first key above</div>`;
     return;
   }
 
-  list.innerHTML = keys.map(k => {
-    const isRevoked = k.status === "revoked";
-    const lastUsed  = k.last_used_at ? `Last used ${timeAgo(k.last_used_at)}` : "Never used";
+  list.innerHTML = allKeys.map(k => {
+    const isActive  = k.status === "active";
+    const created   = new Date(k.created_at).toLocaleDateString("en-AU", { day:"numeric", month:"short", year:"numeric" });
+    const lastUsed  = k.last_used_at
+      ? new Date(k.last_used_at).toLocaleDateString("en-AU", { day:"numeric", month:"short", year:"numeric" })
+      : "Never used";
+    const masked = `${k.key_prefix}${"•".repeat(41)}`;
+    const perms  = (k.permissions || []).map(p => `<span class="perm">${p}</span>`).join("");
+
     return `
-    <div class="key-row ${isRevoked ? "revoked" : ""}">
-      <div class="key-info">
-        <div class="key-name">${k.name}</div>
-        <div class="key-display">${k.display_key}</div>
-        <div class="key-meta">
-          <span class="${isRevoked ? "status-revoked" : "status-active"}">${isRevoked ? "⛔ Revoked" : "✅ Active"}</span>
-          <span>Created ${timeAgo(k.created_at)}</span>
-          <span>${lastUsed}</span>
-          <span>${(k.use_count || 0).toLocaleString()} calls</span>
+    <div class="key-item ${isActive ? "" : "revoked"}" id="ki-${k.key_id}">
+      <div class="key-top">
+        <div>
+          <div class="key-name">${k.name}</div>
+          <div class="key-masked">${masked}</div>
         </div>
-        <div class="key-perms">
-          ${(k.permissions || []).map(p => `<span class="perm-badge">${p}</span>`).join("")}
-        </div>
+        <span class="${isActive ? "key-status-active" : "key-status-revoked"}">
+          ${isActive ? "✅ Active" : "⛔ Revoked"}
+        </span>
       </div>
+      <div class="key-meta">
+        <span>Created: ${created}</span>
+        <span>Last used: ${lastUsed}</span>
+        <span>API calls: ${(k.use_count || 0).toLocaleString()}</span>
+        ${k.revoked_at ? `<span>Revoked: ${new Date(k.revoked_at).toLocaleDateString()}</span>` : ""}
+      </div>
+      <div class="key-perms">${perms}</div>
       <div class="key-actions">
-        <button type="button" class="key-btn" onclick="viewUsage('${k.key_id}','${k.name}')">Usage</button>
-        ${!isRevoked ? `<button type="button" class="key-btn revoke" onclick="revokeKey('${k.key_id}','${k.name}')">Revoke</button>` : ""}
+        <button type="button" class="btn-sm" onclick="toggleUsage('${k.key_id}')">📊 Usage Log</button>
+        ${isActive ? `<button type="button" class="btn-sm danger" onclick="revokeKey('${k.key_id}','${k.name}')">Revoke</button>` : ""}
+      </div>
+      <div class="usage-panel" id="up-${k.key_id}">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Loading usage...</div>
       </div>
     </div>`;
   }).join("");
 }
 
+// ─── Create key ───────────────────────────────────────────────────────
 async function createKey() {
   const name  = document.getElementById("key-name").value.trim();
-  const perms = document.getElementById("key-perms").value;
-  if (!name) { toast("Give your key a name first", true); return; }
+  const perms = document.getElementById("key-perms").value.split(",");
 
-  const btn = document.getElementById("create-btn");
+  if (!name) { toast("Enter a key name first", true); return; }
+
+  // Check limit
+  const activeCount = allKeys.filter(k => k.status === "active").length;
+  if (activeCount >= 10) { toast("Maximum 10 active keys — revoke one first", true); return; }
+
+  const btn = document.getElementById("btn-create");
   btn.disabled = true;
-  btn.innerHTML = '<span class="spin"></span>Generating...';
+  btn.textContent = "Generating...";
 
-  const res = await callFn("manageApiKeys", {
-    action: "create", userId: currentUser.id,
-    name, permissions: perms.split(","),
+  try {
+    // Generate key client-side using crypto
+    const array   = new Uint8Array(24);
+    crypto.getRandomValues(array);
+    const hex     = Array.from(array).map(b => b.toString(16).padStart(2, "0")).join("");
+    const plaintext = `frgk_${hex}`;
+    const prefix    = plaintext.slice(0, 12);
+
+    // Hash it using SubtleCrypto
+    const encoder = new TextEncoder();
+    const data    = encoder.encode(plaintext);
+    const hashBuf = await crypto.subtle.digest("SHA-256", data);
+    const hashed  = Array.from(new Uint8Array(hashBuf))
+      .map(b => b.toString(16).padStart(2, "0")).join("");
+
+    // Save to Supabase
+    const { data: newKey, error } = await sb
+      .from("api_keys")
+      .insert({
+        user_id:     uid,
+        name,
+        hashed_key:  hashed,
+        key_prefix:  prefix,
+        status:      "active",
+        permissions: perms,
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    // Show key ONCE
+    newKeyText = plaintext;
+    document.getElementById("key-box").textContent = plaintext;
+    document.getElementById("key-reveal").style.display = "block";
+    document.getElementById("key-name").value = "";
+
+    allKeys.unshift(newKey);
+    renderStats();
+    renderKeys();
+    toast("✓ API key created — copy it now!");
+
+  } catch (err) {
+    toast("Error: " + err.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Generate Key";
+  }
+}
+
+function copyKey() {
+  if (!newKeyText) return;
+  navigator.clipboard.writeText(newKeyText).then(() => {
+    const btn = document.querySelector(".btn-copy-key");
+    btn.textContent = "✓ Copied!";
+    setTimeout(() => { btn.textContent = "📋 Copy API Key"; }, 2000);
+    toast("Key copied to clipboard!");
   });
-
-  btn.disabled = false;
-  btn.textContent = "Generate Key";
-
-  if (res.error) { toast(res.error, true); return; }
-
-  newKeyPlaintext = res.api_key;
-  document.getElementById("new-key-string").textContent = res.api_key;
-  document.getElementById("key-reveal").style.display = "block";
-  document.getElementById("key-name").value = "";
-  toast("✓ API key created — copy it now!");
-  await loadAll();
 }
 
-function copyNewKey() {
-  if (!newKeyPlaintext) return;
-  copyText(newKeyPlaintext);
-  const btn = document.getElementById("copy-key-btn");
-  btn.textContent = "✓ Copied!";
-  setTimeout(() => { btn.textContent = "📋 Copy API Key"; }, 2000);
-}
-
+// ─── Revoke key ───────────────────────────────────────────────────────
 async function revokeKey(keyId, keyName) {
-  if (!confirm(`Revoke API key "${keyName}"?\n\nAny system using this key will immediately lose access.`)) return;
-  const res = await callFn("manageApiKeys", { action: "revoke", userId: currentUser.id, keyId });
-  if (res.error) { toast(res.error, true); return; }
+  if (!confirm(`Revoke "${keyName}"?\n\nSystems using this key will lose access immediately.`)) return;
+
+  const { error } = await sb
+    .from("api_keys")
+    .update({ status: "revoked", revoked_at: new Date().toISOString() })
+    .eq("key_id", keyId)
+    .eq("user_id", uid);
+
+  if (error) { toast("Error: " + error.message, true); return; }
+
+  const key = allKeys.find(k => k.key_id === keyId);
+  if (key) { key.status = "revoked"; key.revoked_at = new Date().toISOString(); }
+
+  renderStats();
+  renderKeys();
   toast(`✓ Key "${keyName}" revoked`);
-  await loadAll();
 }
 
-async function viewUsage(keyId, keyName) {
-  document.getElementById("usage-modal-title").textContent = `Usage — ${keyName}`;
-  document.getElementById("usage-modal").classList.add("open");
-  const res = await callFn("manageApiKeys", { action: "usage", userId: currentUser.id, keyId, limit: 100 });
-  const wrap = document.getElementById("usage-table-wrap");
-  if (res.error || !res.usage?.length) {
-    wrap.innerHTML = `<div class="empty"><div class="empty-icon">📊</div><div>No usage recorded yet</div></div>`;
+// ─── Usage log (load on demand) ───────────────────────────────────────
+async function toggleUsage(keyId) {
+  const panel = document.getElementById(`up-${keyId}`);
+  panel.classList.toggle("open");
+
+  if (!panel.classList.contains("open")) return;
+
+  const { data, error } = await sb
+    .from("api_key_usage")
+    .select("endpoint, status_code, used_at")
+    .eq("key_id", keyId)
+    .order("used_at", { ascending: false })
+    .limit(20);
+
+  if (error || !data?.length) {
+    panel.innerHTML = `<div style="font-size:12px;color:var(--muted);padding:8px 0">No usage recorded yet</div>`;
     return;
   }
-  wrap.innerHTML = `
-    <div style="font-size:12px;color:var(--muted);margin-bottom:12px">${(res.total||0).toLocaleString()} total calls</div>
-    <table>
-      <thead><tr><th>Endpoint</th><th>Status</th><th>Time</th></tr></thead>
-      <tbody>
-        ${res.usage.map(u => `
-          <tr>
-            <td style="color:var(--accent2);font-size:11px">${u.endpoint}</td>
-            <td style="color:${u.status_code===200?'var(--accent)':'var(--danger)'};font-size:11px">${u.status_code||200}</td>
-            <td style="color:var(--muted);font-size:11px">${new Date(u.used_at).toLocaleString()}</td>
-          </tr>`).join("")}
-      </tbody>
-    </table>`;
+
+  panel.innerHTML = data.map(u => `
+    <div class="usage-row">
+      <span class="usage-endpoint">${u.endpoint}</span>
+      <span style="color:${u.status_code===200?'var(--accent)':'var(--danger)'};font-size:11px">${u.status_code}</span>
+      <span class="usage-time">${new Date(u.used_at).toLocaleString()}</span>
+    </div>`).join("");
 }
 
-function closeUsageModal() {
-  document.getElementById("usage-modal").classList.remove("open");
-}
-
+// ─── Auth ─────────────────────────────────────────────────────────────
 async function logout() {
   await sb.auth.signOut();
   window.location.href = "login.html";
 }
 
-async function callFn(name, body) {
-  try {
-    const r = await fetch(`/.netlify/functions/${name}`, {
-      method:"POST", headers:{"Content-Type":"application/json"},
-      body: JSON.stringify(body)
-    });
-    return r.json();
-  } catch(e) { return { error: e.message }; }
-}
-
-function copyText(text) {
-  navigator.clipboard.writeText(text).catch(() => {
-    const ta = document.createElement("textarea");
-    ta.value = text; document.body.appendChild(ta);
-    ta.select(); document.execCommand("copy");
-    document.body.removeChild(ta);
-  });
-}
-
-function setText(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
-function toast(msg, isErr=false) {
+// ─── Toast ────────────────────────────────────────────────────────────
+function toast(msg, isErr = false) {
   const t = document.getElementById("toast");
   t.textContent = msg;
   t.style.background = isErr ? "var(--danger)" : "var(--accent)";
-  t.style.color = isErr ? "#fff" : "#000";
+  t.style.color      = isErr ? "#fff"          : "#000";
   t.classList.add("show");
   setTimeout(() => t.classList.remove("show"), 2500);
 }
-function timeAgo(d) {
-  const h = Math.floor((Date.now()-new Date(d).getTime())/3600000);
-  if (h<1) return "just now";
-  if (h<24) return h+"h ago";
-  return Math.floor(h/24)+"d ago";
-}
-
-document.getElementById("usage-modal").addEventListener("click", e => {
-  if (e.target === document.getElementById("usage-modal")) closeUsageModal();
-});
 </script>
 </body>
 </html>
