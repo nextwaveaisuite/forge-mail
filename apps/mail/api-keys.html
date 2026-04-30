@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Forge Mail — API Keys</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:#080810;--surface:#0e0e1a;--surface2:#111120;--surface3:#141424;
+      --border:rgba(255,255,255,0.07);--border-accent:rgba(0,245,160,0.2);
+      --accent:#00f5a0;--accent2:#00b4d8;
+      --warn:#ffa502;--danger:#ff4757;--text:#e8e8f0;--muted:#5a5a7a;
+      --font-d:'Syne',sans-serif;--font-m:'DM Mono',monospace;--r:6px;--rs:3px;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--text);font-family:var(--font-m);font-size:14px;line-height:1.7;min-height:100vh}
+    nav{height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid var(--border);background:rgba(8,8,16,0.97);position:sticky;top:0;z-index:200}
+    .logo{font-family:var(--font-d);font-weight:800;font-size:18px;letter-spacing:-0.5px;color:white;text-decoration:none}
+    .logo span{color:var(--accent)}
+    .logo-tag{font-size:10px;color:var(--muted);letter-spacing:0.15em;text-transform:uppercase;margin-left:6px;font-weight:400}
+    .nav-right{display:flex;align-items:center;gap:8px}
+    .nav-link{color:var(--muted);text-decoration:none;font-size:12px;padding:5px 10px;border-radius:var(--rs);border:1px solid var(--border);transition:all 0.15s}
+    .nav-link:hover{color:var(--text)}
+    .btn-logout{padding:5px 12px;border-radius:var(--rs);font-family:var(--font-d);font-weight:700;font-size:11px;cursor:pointer;border:1px solid rgba(255,71,87,0.3);background:none;color:var(--danger);transition:all 0.15s}
+    .btn-logout:hover{background:rgba(255,71,87,0.08)}
+    .page{max-width:900px;margin:0 auto;padding:36px 24px}
+    .page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:12px}
+    .page-title{font-family:var(--font-d);font-size:24px;font-weight:800;letter-spacing:-0.5px}
+    .page-sub{font-size:13px;color:var(--muted);margin-top:4px}
+    .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:24px}
+    .stat-cell{background:var(--surface);padding:18px 20px;text-align:center}
+    .stat-num{font-family:var(--font-d);font-size:28px;font-weight:800;color:var(--accent);display:block;line-height:1}
+    .stat-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-top:4px;display:block}
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:24px;margin-bottom:16px}
+    .card-title{font-family:var(--font-d);font-size:15px;font-weight:700;margin-bottom:16px}
+    .new-key-form{display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end}
+    .field label{display:block;font-size:11px;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px}
+    .field input,.field select{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-m);font-size:13px;padding:10px 12px;border-radius:var(--rs);outline:none;transition:border 0.15s}
+    .field input:focus,.field select:focus{border-color:var(--border-accent)}
+    .field input::placeholder{color:var(--muted)}
+    .create-btn{padding:10px 20px;background:var(--accent);color:#000;border:none;border-radius:var(--rs);font-family:var(--font-d);font-weight:700;font-size:13px;cursor:pointer;transition:all 0.15s;white-space:nowrap}
+    .create-btn:hover{background:#00ffb0}
+    .create-btn:disabled{opacity:0.45;cursor:not-allowed}
+    .key-reveal{background:rgba(0,245,160,0.04);border:1px solid rgba(0,245,160,0.25);border-radius:var(--r);padding:20px;margin-top:16px;display:none}
+    .key-reveal-title{font-family:var(--font-d);font-size:14px;font-weight:700;color:var(--accent);margin-bottom:6px}
+    .key-reveal-warn{font-size:12px;color:var(--warn);margin-bottom:14px;padding:8px 12px;background:rgba(255,165,2,0.06);border:1px solid rgba(255,165,2,0.2);border-radius:var(--rs)}
+    .key-string{font-family:var(--font-m);font-size:13px;color:var(--text);background:var(--surface2);border:1px solid var(--border);padding:12px 14px;border-radius:var(--rs);word-break:break-all;letter-spacing:0.05em;margin-bottom:10px}
+    .copy-key-btn{padding:8px 18px;background:var(--accent);color:#000;border:none;border-radius:var(--rs);font-family:var(--font-d);font-weight:700;font-size:13px;cursor:pointer;transition:all 0.15s}
+    .copy-key-btn:hover{background:#00ffb0}
+    .keys-list{display:flex;flex-direction:column;gap:10px}
+    .key-row{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:16px 18px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;transition:border 0.15s}
+    .key-row:hover{border-color:rgba(255,255,255,0.12)}
+    .key-row.revoked{opacity:0.5}
+    .key-info{flex:1;min-width:0}
+    .key-name{font-family:var(--font-d);font-size:14px;font-weight:700;margin-bottom:3px}
+    .key-display{font-size:12px;color:var(--accent2);letter-spacing:0.08em;margin-bottom:4px}
+    .key-meta{font-size:11px;color:var(--muted);display:flex;flex-wrap:wrap;gap:12px}
+    .key-perms{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+    .perm-badge{font-size:10px;padding:2px 8px;border-radius:3px;background:rgba(0,180,216,0.08);color:var(--accent2);border:1px solid rgba(0,180,216,0.2)}
+    .status-active{color:var(--accent)}
+    .status-revoked{color:var(--danger)}
+    .key-actions{display:flex;gap:6px;flex-shrink:0}
+    .key-btn{padding:6px 12px;border-radius:var(--rs);font-size:11px;cursor:pointer;border:1px solid var(--border);background:none;color:var(--muted);transition:all 0.15s;font-family:var(--font-m)}
+    .key-btn:hover{color:var(--text);border-color:rgba(255,255,255,0.2)}
+    .key-btn.revoke:hover{color:var(--danger);border-color:rgba(255,71,87,0.3)}
+    .modal-bg{position:fixed;inset:0;background:rgba(8,8,16,0.88);display:none;align-items:center;justify-content:center;z-index:300;padding:16px}
+    .modal-bg.open{display:flex}
+    .modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);width:100%;max-width:680px;max-height:85vh;overflow-y:auto}
+    .modal-header{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--surface)}
+    .modal-title{font-family:var(--font-d);font-size:15px;font-weight:700}
+    .modal-close{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer}
+    .modal-close:hover{color:var(--text)}
+    .modal-body{padding:18px 22px}
+    table{width:100%;border-collapse:collapse;font-size:12px}
+    th{padding:8px 12px;text-align:left;border-bottom:1px solid var(--border);color:var(--muted);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;font-weight:400}
+    td{padding:9px 12px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
+    tr:last-child td{border-bottom:none}
+    .docs-box{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:12px}
+    .docs-title{font-family:var(--font-d);font-size:13px;font-weight:700;color:var(--accent);margin-bottom:10px}
+    .code-block{background:var(--surface3);border:1px solid var(--border);border-radius:var(--rs);padding:14px;font-size:12px;color:var(--accent2);overflow-x:auto;margin-bottom:8px;white-space:pre}
+    .code-comment{color:var(--muted)}
+    .empty{text-align:center;padding:40px 20px;color:var(--muted)}
+    .empty-icon{font-size:36px;margin-bottom:12px;opacity:0.3}
+    .spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(0,0,0,0.2);border-top-color:#000;border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:5px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .toast{position:fixed;bottom:24px;right:24px;padding:10px 20px;border-radius:4px;font-family:var(--font-d);font-weight:700;font-size:13px;z-index:9999;transform:translateY(60px);opacity:0;transition:all 0.25s;pointer-events:none}
+    .toast.show{transform:translateY(0);opacity:1}
+    @media(max-width:600px){.new-key-form{grid-template-columns:1fr}.stats-row{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<div class="modal-bg" id="usage-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="usage-modal-title">Usage Log</span>
+      <button type="button" class="modal-close" onclick="closeUsageModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="usage-table-wrap">
+        <div class="empty"><div class="empty-icon">📊</div><div>Loading...</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<nav>
+  <a href="index.html" class="logo">Forge<span>.</span><span class="logo-tag">API Keys</span></a>
+  <div class="nav-right">
+    <a href="index.html" class="nav-link">Email Writer</a>
+    <a href="leads.html" class="nav-link">Leads</a>
+    <button type="button" class="btn-logout" onclick="logout()">Logout</button>
+  </div>
+</nav>
+
+<div class="page">
+
+  <div class="page-header">
+    <div>
+      <div class="page-title">API Keys</div>
+      <div class="page-sub">Securely connect external systems to Forge Mail</div>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-cell"><span class="stat-num" id="stat-active">—</span><span class="stat-lbl">Active Keys</span></div>
+    <div class="stat-cell"><span class="stat-num" id="stat-revoked">—</span><span class="stat-lbl">Revoked Keys</span></div>
+    <div class="stat-cell"><span class="stat-num" id="stat-use">—</span><span class="stat-lbl">Total API Calls</span></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🔑 Create New API Key</div>
+    <div class="new-key-form">
+      <div class="field">
+        <label>Key Name / Label</label>
+        <input type="text" id="key-name" placeholder="e.g. Traffic Engine, Zapier, Traffic ROM"/>
+      </div>
+      <div class="field">
+        <label>Permissions</label>
+        <select id="key-perms">
+          <option value="lead:write,campaign:read">lead:write + campaign:read (default)</option>
+          <option value="lead:write,lead:read,campaign:read,campaign:write">Lead + Campaign full access</option>
+          <option value="lead:write,lead:read,campaign:read,campaign:write,email:send">Full access + Send email</option>
+          <option value="lead:read,campaign:read">Read only</option>
+        </select>
+      </div>
+      <button type="button" class="create-btn" id="create-btn" onclick="createKey()">
+        Generate Key
+      </button>
+    </div>
+
+    <div class="key-reveal" id="key-reveal">
+      <div class="key-reveal-title">✅ New API Key Created</div>
+      <div class="key-reveal-warn">
+        ⚠️ Copy this key now. It will NEVER be shown again after you leave this page.
+      </div>
+      <div class="key-string" id="new-key-string"></div>
+      <button type="button" class="copy-key-btn" id="copy-key-btn" onclick="copyNewKey()">
+        📋 Copy API Key
+      </button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Your API Keys <span id="keys-count" style="color:var(--muted);font-weight:400;font-size:13px"></span></div>
+    <div class="keys-list" id="keys-list">
+      <div class="empty">
+        <div class="empty-icon">🔑</div>
+        <div>No API keys yet — create your first key above</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📖 How to Use</div>
+    <div class="docs-box">
+      <div class="docs-title">Ingest a lead from any external system</div>
+      <div class="code-block"><span class="code-comment"># Single lead</span>
+curl -X POST https://mail.nextwaveaisuite.com/.netlify/functions/apiIngest \
+  -H "Authorization: Bearer frgk_your_api_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "john@example.com",
+    "first_name": "John",
+    "state": "Texas",
+    "country": "USA",
+    "tags": ["traffic-rom", "weight-loss"]
+  }'</div>
+      <div class="code-block"><span class="code-comment"># Batch up to 500 leads</span>
+curl -X POST https://mail.nextwaveaisuite.com/.netlify/functions/apiIngest \
+  -H "Authorization: Bearer frgk_your_api_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "leads": [
+      { "email": "lead1@example.com", "first_name": "Jane" },
+      { "email": "lead2@example.com", "first_name": "Bob" }
+    ]
+  }'</div>
+    </div>
+    <div class="docs-box">
+      <div class="docs-title">Success response</div>
+      <div class="code-block">{
+  "success": true,
+  "inserted": 2,
+  "duplicates": 0,
+  "invalid": 0,
+  "total": 2,
+  "message": "2 leads ingested via API key: Traffic Engine"
+}</div>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const SB_URL  = "YOUR_SUPABASE_URL";
+const SB_ANON = "YOUR_SUPABASE_ANON_KEY";
+
+const { createClient } = supabase;
+const sb = createClient(SB_URL, SB_ANON);
+
+let currentUser = null;
+let newKeyPlaintext = null;
+
+document.addEventListener("DOMContentLoaded", async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = "login.html"; return; }
+  currentUser = session.user;
+  await loadAll();
+});
+
+async function loadAll() {
+  await Promise.all([loadStats(), loadKeys()]);
+}
+
+async function loadStats() {
+  const res = await callFn("manageApiKeys", { action: "stats", userId: currentUser.id });
+  if (res.error) return;
+  setText("stat-active",  res.active  || 0);
+  setText("stat-revoked", res.revoked || 0);
+  setText("stat-use",     (res.totalUse || 0).toLocaleString());
+}
+
+async function loadKeys() {
+  const res = await callFn("manageApiKeys", { action: "list", userId: currentUser.id });
+  if (res.error) { toast(res.error, true); return; }
+
+  const keys = res.keys || [];
+  setText("keys-count", keys.length ? `(${keys.length} / 10)` : "");
+  const list = document.getElementById("keys-list");
+
+  if (!keys.length) {
+    list.innerHTML = `<div class="empty"><div class="empty-icon">🔑</div><div>No API keys yet — create your first key above</div></div>`;
+    return;
+  }
+
+  list.innerHTML = keys.map(k => {
+    const isRevoked = k.status === "revoked";
+    const lastUsed  = k.last_used_at ? `Last used ${timeAgo(k.last_used_at)}` : "Never used";
+    return `
+    <div class="key-row ${isRevoked ? "revoked" : ""}">
+      <div class="key-info">
+        <div class="key-name">${k.name}</div>
+        <div class="key-display">${k.display_key}</div>
+        <div class="key-meta">
+          <span class="${isRevoked ? "status-revoked" : "status-active"}">${isRevoked ? "⛔ Revoked" : "✅ Active"}</span>
+          <span>Created ${timeAgo(k.created_at)}</span>
+          <span>${lastUsed}</span>
+          <span>${(k.use_count || 0).toLocaleString()} calls</span>
+        </div>
+        <div class="key-perms">
+          ${(k.permissions || []).map(p => `<span class="perm-badge">${p}</span>`).join("")}
+        </div>
+      </div>
+      <div class="key-actions">
+        <button type="button" class="key-btn" onclick="viewUsage('${k.key_id}','${k.name}')">Usage</button>
+        ${!isRevoked ? `<button type="button" class="key-btn revoke" onclick="revokeKey('${k.key_id}','${k.name}')">Revoke</button>` : ""}
+      </div>
+    </div>`;
+  }).join("");
+}
+
+async function createKey() {
+  const name  = document.getElementById("key-name").value.trim();
+  const perms = document.getElementById("key-perms").value;
+  if (!name) { toast("Give your key a name first", true); return; }
+
+  const btn = document.getElementById("create-btn");
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span>Generating...';
+
+  const res = await callFn("manageApiKeys", {
+    action: "create", userId: currentUser.id,
+    name, permissions: perms.split(","),
+  });
+
+  btn.disabled = false;
+  btn.textContent = "Generate Key";
+
+  if (res.error) { toast(res.error, true); return; }
+
+  newKeyPlaintext = res.api_key;
+  document.getElementById("new-key-string").textContent = res.api_key;
+  document.getElementById("key-reveal").style.display = "block";
+  document.getElementById("key-name").value = "";
+  toast("✓ API key created — copy it now!");
+  await loadAll();
+}
+
+function copyNewKey() {
+  if (!newKeyPlaintext) return;
+  copyText(newKeyPlaintext);
+  const btn = document.getElementById("copy-key-btn");
+  btn.textContent = "✓ Copied!";
+  setTimeout(() => { btn.textContent = "📋 Copy API Key"; }, 2000);
+}
+
+async function revokeKey(keyId, keyName) {
+  if (!confirm(`Revoke API key "${keyName}"?\n\nAny system using this key will immediately lose access.`)) return;
+  const res = await callFn("manageApiKeys", { action: "revoke", userId: currentUser.id, keyId });
+  if (res.error) { toast(res.error, true); return; }
+  toast(`✓ Key "${keyName}" revoked`);
+  await loadAll();
+}
+
+async function viewUsage(keyId, keyName) {
+  document.getElementById("usage-modal-title").textContent = `Usage — ${keyName}`;
+  document.getElementById("usage-modal").classList.add("open");
+  const res = await callFn("manageApiKeys", { action: "usage", userId: currentUser.id, keyId, limit: 100 });
+  const wrap = document.getElementById("usage-table-wrap");
+  if (res.error || !res.usage?.length) {
+    wrap.innerHTML = `<div class="empty"><div class="empty-icon">📊</div><div>No usage recorded yet</div></div>`;
+    return;
+  }
+  wrap.innerHTML = `
+    <div style="font-size:12px;color:var(--muted);margin-bottom:12px">${(res.total||0).toLocaleString()} total calls</div>
+    <table>
+      <thead><tr><th>Endpoint</th><th>Status</th><th>Time</th></tr></thead>
+      <tbody>
+        ${res.usage.map(u => `
+          <tr>
+            <td style="color:var(--accent2);font-size:11px">${u.endpoint}</td>
+            <td style="color:${u.status_code===200?'var(--accent)':'var(--danger)'};font-size:11px">${u.status_code||200}</td>
+            <td style="color:var(--muted);font-size:11px">${new Date(u.used_at).toLocaleString()}</td>
+          </tr>`).join("")}
+      </tbody>
+    </table>`;
+}
+
+function closeUsageModal() {
+  document.getElementById("usage-modal").classList.remove("open");
+}
+
+async function logout() {
+  await sb.auth.signOut();
+  window.location.href = "login.html";
+}
+
+async function callFn(name, body) {
+  try {
+    const r = await fetch(`/.netlify/functions/${name}`, {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify(body)
+    });
+    return r.json();
+  } catch(e) { return { error: e.message }; }
+}
+
+function copyText(text) {
+  navigator.clipboard.writeText(text).catch(() => {
+    const ta = document.createElement("textarea");
+    ta.value = text; document.body.appendChild(ta);
+    ta.select(); document.execCommand("copy");
+    document.body.removeChild(ta);
+  });
+}
+
+function setText(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
+function toast(msg, isErr=false) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.style.background = isErr ? "var(--danger)" : "var(--accent)";
+  t.style.color = isErr ? "#fff" : "#000";
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 2500);
+}
+function timeAgo(d) {
+  const h = Math.floor((Date.now()-new Date(d).getTime())/3600000);
+  if (h<1) return "just now";
+  if (h<24) return h+"h ago";
+  return Math.floor(h/24)+"d ago";
+}
+
+document.getElementById("usage-modal").addEventListener("click", e => {
+  if (e.target === document.getElementById("usage-modal")) closeUsageModal();
+});
+</script>
+</body>
+</html>
